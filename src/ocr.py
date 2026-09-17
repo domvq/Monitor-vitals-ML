@@ -1,38 +1,16 @@
 
-import easyocr
-import numpy as np
+import re
+
 import cv2
-import streamlit as st
+import numpy as np
+import pytesseract
 
-
-# ============================================================
-# OCR MODEL
-# ============================================================
-
-@st.cache_resource(show_spinner="Loading OCR model...")
-def get_reader():
-
-    return easyocr.Reader(
-        ["en"],
-        gpu=False
-    )
-
-
-# ============================================================
-# IMAGE PREPROCESSING
-# ============================================================
 
 def preprocess_image(image):
-
-    image_array = np.array(
-        image.convert("RGB")
-    )
+    image_array = np.array(image.convert("RGB"))
 
     if image_array.size == 0:
-
-        raise ValueError(
-            "Uploaded image is empty."
-        )
+        raise ValueError("Uploaded image is empty.")
 
     gray = cv2.cvtColor(
         image_array,
@@ -41,19 +19,12 @@ def preprocess_image(image):
 
     height, width = gray.shape
 
-    # Keep very large images from consuming
-    # excessive memory during OCR.
+    # Prevent extremely large uploads
+    # from consuming excessive memory.
     max_dimension = 1800
 
-    if max(
-        height,
-        width
-    ) > max_dimension:
-
-        scale = (
-            max_dimension
-            / max(height, width)
-        )
+    if max(height, width) > max_dimension:
+        scale = max_dimension / max(height, width)
 
         gray = cv2.resize(
             gray,
@@ -64,7 +35,7 @@ def preprocess_image(image):
             interpolation=cv2.INTER_AREA
         )
 
-    # Moderate upscale
+    # Upscale monitor digits.
     height, width = gray.shape
 
     gray = cv2.resize(
@@ -76,17 +47,15 @@ def preprocess_image(image):
         interpolation=cv2.INTER_CUBIC
     )
 
-    # Contrast enhancement
+    # Improve contrast.
     clahe = cv2.createCLAHE(
         clipLimit=2.0,
         tileGridSize=(8, 8)
     )
 
-    enhanced = clahe.apply(
-        gray
-    )
+    enhanced = clahe.apply(gray)
 
-    # Light noise reduction
+    # Light denoising.
     enhanced = cv2.GaussianBlur(
         enhanced,
         (3, 3),
@@ -96,40 +65,49 @@ def preprocess_image(image):
     return enhanced
 
 
-# ============================================================
-# GENERAL OCR
-# ============================================================
-
 def extract_text(image):
+    processed = preprocess_image(image)
 
-    reader = get_reader()
-
-    processed = preprocess_image(
-        image
-    )
-
-    results = reader.readtext(
+    data = pytesseract.image_to_data(
         processed,
-        detail=1,
-        paragraph=False
+        config="--psm 11",
+        output_type=pytesseract.Output.DICT
     )
 
     detected_text = []
 
-    for box, text, confidence in results:
+    for i, text in enumerate(data["text"]):
 
-        text = str(
-            text
-        ).strip()
+        text = str(text).strip()
 
         if not text:
             continue
 
+        try:
+            confidence = float(
+                data["conf"][i]
+            )
+        except (ValueError, TypeError):
+            confidence = 0.0
+
+        x = data["left"][i]
+        y = data["top"][i]
+        w = data["width"][i]
+        h = data["height"][i]
+
+        box = [
+            [x, y],
+            [x + w, y],
+            [x + w, y + h],
+            [x, y + h]
+        ]
+
         detected_text.append(
             {
                 "text": text,
-                "confidence": float(
-                    confidence
+                "confidence": max(
+                    0.0,
+                    confidence / 100.0
                 ),
                 "box": box
             }
@@ -138,93 +116,39 @@ def extract_text(image):
     return detected_text
 
 
-# ============================================================
-# BLOOD PRESSURE OCR
-# ============================================================
-
 def extract_bp_candidates(image):
+    processed = preprocess_image(image)
 
-    reader = get_reader()
-
-    image_array = np.array(
-        image.convert("RGB")
+    # BP displays generally contain
+    # digits, slash, or dash.
+    config = (
+        "--psm 11 "
+        "-c tessedit_char_whitelist=0123456789/-"
     )
 
-    if image_array.size == 0:
-
-        return []
-
-    gray = cv2.cvtColor(
-        image_array,
-        cv2.COLOR_RGB2GRAY
-    )
-
-    height, width = gray.shape
-
-    # Prevent huge images from creating
-    # excessive memory usage.
-    max_dimension = 1800
-
-    if max(
-        height,
-        width
-    ) > max_dimension:
-
-        scale = (
-            max_dimension
-            / max(height, width)
-        )
-
-        gray = cv2.resize(
-            gray,
-            (
-                int(width * scale),
-                int(height * scale)
-            ),
-            interpolation=cv2.INTER_AREA
-        )
-
-    # BP-specific upscale
-    height, width = gray.shape
-
-    gray = cv2.resize(
-        gray,
-        (
-            width * 2,
-            height * 2
-        ),
-        interpolation=cv2.INTER_CUBIC
-    )
-
-    gray = cv2.equalizeHist(
-        gray
-    )
-
-    results = reader.readtext(
-        gray,
-        detail=1,
-        paragraph=False,
-        allowlist="0123456789/-"
+    text = pytesseract.image_to_string(
+        processed,
+        config=config
     )
 
     candidates = []
 
-    for box, text, confidence in results:
+    # Find values such as:
+    # 120/80
+    # 118/76
+    # 140/90
+    matches = re.findall(
+        r"\b(\d{2,3})\s*/\s*(\d{2,3})\b",
+        text
+    )
 
-        text = str(
-            text
-        ).strip()
-
-        if "/" not in text:
-            continue
+    for systolic, diastolic in matches:
 
         candidates.append(
             {
-                "text": text,
-                "confidence": float(
-                    confidence
-                ),
-                "box": box
+                "text": f"{systolic}/{diastolic}",
+                "confidence": None,
+                "box": None
             }
         )
 
