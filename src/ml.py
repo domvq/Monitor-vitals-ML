@@ -6,12 +6,12 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 VITALS = [
-    "hr",
-    "spo2",
-    "bp_sys",
-    "bp_dia",
-    "rr",
-    "etco2",
+    "HR",
+    "SPO2",
+    "BP_SYS",
+    "BP_DIA",
+    "RR",
+    "ETCO2",
 ]
 
 
