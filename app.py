@@ -1,5 +1,9 @@
-id="r3kq8m"
+
 import streamlit as st
+from PIL import Image
+
+from src.ocr import extract_text, extract_bp_candidates
+
 
 st.set_page_config(
     page_title="VitalSight",
@@ -7,170 +11,124 @@ st.set_page_config(
     layout="wide",
 )
 
-# ============================================================
-# SIMPLE THEME-SAFE CSS
-# ============================================================
-
-st.markdown(
-    """
-    <style>
-
-    .vital-card {
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid rgba(128,128,128,0.25);
-        background: rgba(128,128,128,0.06);
-        text-align: center;
-    }
-
-    .vital-label {
-        font-size: 0.85rem;
-        opacity: 0.70;
-        font-weight: 600;
-    }
-
-    .vital-value {
-        font-size: 1.7rem;
-        font-weight: 800;
-        margin-top: 8px;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# ============================================================
-# HEADER
-# ============================================================
 
 st.title("🚑 VitalSight")
 
 st.caption(
-    "Monitor image reader • OCR • ML trend analysis • "
-    "clinical reference"
+    "OCR diagnostic version"
 )
 
-st.warning(
-    "Reference / educational prototype. "
-    "Extracted values must be verified against the actual "
-    "monitor and patient assessment."
-)
-
-# ============================================================
-# SIDEBAR
-# ============================================================
-
-with st.sidebar:
-
-    st.header("Patient Context")
-
-    age = st.number_input(
-        "Age",
-        min_value=0,
-        max_value=120,
-        value=30,
-    )
-
-    complaint = st.text_input(
-        "Chief complaint",
-        placeholder="Optional",
-    )
-
-# ============================================================
-# UPLOAD
-# ============================================================
-
-st.subheader("📷 Monitor Image")
 
 uploaded = st.file_uploader(
     "Upload a monitor photograph",
     type=["jpg", "jpeg", "png"],
 )
 
+
 if uploaded:
 
-    st.success("Image uploaded successfully.")
+    image = Image.open(
+        uploaded
+    ).convert("RGB")
 
     st.image(
-        uploaded,
+        image,
         caption="Uploaded monitor",
         use_container_width=True,
     )
 
-# ============================================================
-# TEST CARDS
-# ============================================================
+    if st.button(
+        "🔍 Read Monitor",
+        type="primary",
+    ):
 
-st.divider()
+        st.write("Starting OCR...")
 
-st.subheader("❤️ Extracted Vital Signs")
+        try:
 
-columns = st.columns(5)
+            with st.spinner(
+                "Reading monitor..."
+            ):
 
-test_cards = [
-    ("HR", "--"),
-    ("SpO₂", "--"),
-    ("Blood Pressure", "--"),
-    ("RR", "--"),
-    ("EtCO₂", "--"),
-]
+                ocr_results = extract_text(
+                    image
+                )
 
-for column, (label, value) in zip(
-    columns,
-    test_cards,
-):
+            st.success(
+                "General OCR completed."
+            )
 
-    with column:
+            st.write(
+                f"Detected {len(ocr_results)} "
+                "text regions."
+            )
 
-        st.markdown(
-            f"""
-            <div class="vital-card">
-                <div class="vital-label">
-                    {label}
-                </div>
-                <div class="vital-value">
-                    {value}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+            if ocr_results:
+
+                st.subheader(
+                    "OCR Results"
+                )
+
+                for item in ocr_results:
+
+                    st.write(
+                        f"**{item.get('text', '')}** "
+                        f"— "
+                        f"{item.get('confidence', 0):.0%}"
+                    )
+
+        except Exception as e:
+
+            st.error(
+                "General OCR failed."
+            )
+
+            st.exception(e)
+
+
+        # ====================================================
+        # BLOOD PRESSURE
+        # ====================================================
+
+        st.divider()
+
+        st.subheader(
+            "Blood Pressure OCR"
         )
 
-# ============================================================
-# PLOTLY TEST
-# ============================================================
+        try:
 
-st.divider()
+            with st.spinner(
+                "Searching for blood pressure..."
+            ):
 
-st.subheader("📈 Patient Timeline")
+                bp_results = extract_bp_candidates(
+                    image
+                )
 
-import plotly.graph_objects as go
+            st.success(
+                "Blood pressure OCR completed."
+            )
 
-fig = go.Figure()
+            if bp_results:
 
-fig.add_trace(
-    go.Scatter(
-        x=["10:00", "10:05", "10:10"],
-        y=[80, 84, 82],
-        mode="lines+markers",
-        name="HR",
-        line=dict(
-            color="#60a5fa",
-            width=3,
-        ),
-    )
-)
+                for result in bp_results:
 
-fig.update_layout(
-    height=350,
-    template="plotly_dark",
-)
+                    st.write(
+                        result
+                    )
 
-st.plotly_chart(
-    fig,
-    use_container_width=True,
-)
+            else:
 
-st.success("UI test completed successfully.")
+                st.info(
+                    "No blood pressure candidates detected."
+                )
+
+        except Exception as e:
+
+            st.error(
+                "Blood pressure OCR failed."
+            )
+
+            st.exception(e)
 
