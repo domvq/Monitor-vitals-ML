@@ -1,6 +1,7 @@
 
 import os
 import re
+import shutil
 
 import cv2
 import numpy as np
@@ -11,17 +12,59 @@ import pytesseract
 # TESSERACT CONFIGURATION
 # ============================================================
 
-if os.name == "nt":
+def configure_tesseract():
+    """
+    Configure Tesseract for both local Windows development
+    and Linux-based deployments such as Streamlit Cloud.
+    """
 
-    windows_path = (
-        r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-    )
+    # Windows
+    if os.name == "nt":
 
-    if os.path.exists(windows_path):
+        windows_paths = [
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+            r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+        ]
+
+        for path in windows_paths:
+
+            if os.path.exists(path):
+
+                pytesseract.pytesseract.tesseract_cmd = path
+
+                return
+
+    # Linux / macOS / Streamlit Cloud
+    tesseract_path = shutil.which("tesseract")
+
+    if tesseract_path:
 
         pytesseract.pytesseract.tesseract_cmd = (
-            windows_path
+            tesseract_path
         )
+
+
+configure_tesseract()
+
+
+# ============================================================
+# TESSERACT AVAILABILITY
+# ============================================================
+
+def check_tesseract():
+    """
+    Verify that the Tesseract executable is available.
+    """
+
+    try:
+
+        version = pytesseract.get_tesseract_version()
+
+        return True, str(version)
+
+    except Exception as exc:
+
+        return False, str(exc)
 
 
 # ============================================================
@@ -29,6 +72,12 @@ if os.name == "nt":
 # ============================================================
 
 def preprocess_image(image):
+
+    if image is None:
+
+        raise ValueError(
+            "No image was provided."
+        )
 
     image_array = np.array(
         image.convert("RGB")
@@ -59,8 +108,8 @@ def preprocess_image(image):
         gray = cv2.resize(
             gray,
             (
-                int(width * scale),
-                int(height * scale)
+                max(1, int(width * scale)),
+                max(1, int(height * scale))
             ),
             interpolation=cv2.INTER_AREA
         )
@@ -115,13 +164,14 @@ def safe_confidence(value):
 
         return 0.0
 
-    if confidence < 0:
+    if not np.isfinite(confidence):
 
         return 0.0
 
-    if confidence > 100:
-
-        confidence = 100.0
+    confidence = max(
+        0.0,
+        min(100.0, confidence)
+    )
 
     return confidence / 100.0
 
@@ -131,6 +181,17 @@ def safe_confidence(value):
 # ============================================================
 
 def extract_text(image):
+
+    available, error = check_tesseract()
+
+    if not available:
+
+        raise RuntimeError(
+            "Tesseract OCR is not available. "
+            "Make sure Tesseract is installed on the "
+            "deployment environment. "
+            f"Details: {error}"
+        )
 
     processed = preprocess_image(
         image
@@ -144,35 +205,41 @@ def extract_text(image):
 
     detected_text = []
 
-    for i, text in enumerate(
-        data["text"]
-    ):
+    texts = data.get("text", [])
+    confidences = data.get("conf", [])
+    lefts = data.get("left", [])
+    tops = data.get("top", [])
+    widths = data.get("width", [])
+    heights = data.get("height", [])
 
-        text = str(text).strip()
+    for i, raw_text in enumerate(texts):
+
+        text = str(raw_text).strip()
 
         if not text:
 
             continue
 
         confidence = safe_confidence(
-            data["conf"][i]
+            confidences[i]
+            if i < len(confidences)
+            else 0
         )
 
-        x = int(
-            data["left"][i]
-        )
+        try:
 
-        y = int(
-            data["top"][i]
-        )
+            x = int(lefts[i])
+            y = int(tops[i])
+            w = int(widths[i])
+            h = int(heights[i])
 
-        w = int(
-            data["width"][i]
-        )
+        except (
+            ValueError,
+            TypeError,
+            IndexError
+        ):
 
-        h = int(
-            data["height"][i]
-        )
+            continue
 
         box = [
             [x, y],
@@ -198,6 +265,17 @@ def extract_text(image):
 
 def extract_bp_candidates(image):
 
+    available, error = check_tesseract()
+
+    if not available:
+
+        raise RuntimeError(
+            "Tesseract OCR is not available. "
+            "Make sure Tesseract is installed on the "
+            "deployment environment. "
+            f"Details: {error}"
+        )
+
     processed = preprocess_image(
         image
     )
@@ -207,28 +285,98 @@ def extract_bp_candidates(image):
         "-c tessedit_char_whitelist=0123456789/-"
     )
 
-    text = pytesseract.image_to_string(
+    # Use image_to_data instead of image_to_string
+    # so we can preserve OCR confidence information.
+
+    data = pytesseract.image_to_data(
         processed,
-        config=config
+        config=config,
+        output_type=pytesseract.Output.DICT
     )
 
     candidates = []
 
-    matches = re.findall(
-        r"\b(\d{2,3})\s*/\s*(\d{2,3})\b",
-        text
-    )
+    texts = data.get("text", [])
+    confidences = data.get("conf", [])
+    lefts = data.get("left", [])
+    tops = data.get("top", [])
+    widths = data.get("width", [])
+    heights = data.get("height", [])
 
-    for systolic, diastolic in matches:
+    for i, raw_text in enumerate(texts):
 
-        candidates.append(
-            {
-                "text": (
-                    f"{systolic}/{diastolic}"
-                ),
-                "confidence": None,
-                "box": None
-            }
+        text = str(raw_text).strip()
+
+        if not text:
+
+            continue
+
+        # Normalize common OCR separators.
+        normalized = text.replace(
+            " ",
+            ""
         )
 
+        matches = re.findall(
+            r"(\d{2,3})[/-](\d{2,3})",
+            normalized
+        )
+
+        if not matches:
+
+            continue
+
+        confidence = safe_confidence(
+            confidences[i]
+            if i < len(confidences)
+            else 0
+        )
+
+        try:
+
+            x = int(lefts[i])
+            y = int(tops[i])
+            w = int(widths[i])
+            h = int(heights[i])
+
+            box = [
+                [x, y],
+                [x + w, y],
+                [x + w, y + h],
+                [x, y + h]
+            ]
+
+        except (
+            ValueError,
+            TypeError,
+            IndexError
+        ):
+
+            box = None
+
+        for systolic, diastolic in matches:
+
+            systolic = int(systolic)
+            diastolic = int(diastolic)
+
+            # Basic plausibility filtering.
+            if not (
+                50 <= systolic <= 250
+                and 20 <= diastolic <= 150
+                and systolic > diastolic
+            ):
+
+                continue
+
+            candidates.append(
+                {
+                    "text": (
+                        f"{systolic}/{diastolic}"
+                    ),
+                    "confidence": confidence,
+                    "box": box
+                }
+            )
+
     return candidates
+
