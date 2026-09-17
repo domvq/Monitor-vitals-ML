@@ -33,83 +33,102 @@ st.markdown(
     .block-container {
         max-width: 1400px;
         padding-top: 2rem;
+        padding-bottom: 3rem;
     }
 
     .title {
         font-size: 2.6rem;
         font-weight: 800;
-        color: #0f172a;
+        color: #172033;
     }
 
     .subtitle {
-        color: #64748b;
-        margin-bottom: 1rem;
+        color: #667085;
+        margin-bottom: 1.25rem;
     }
 
     .warning {
-        padding: 15px;
+        padding: 16px 18px;
         border-radius: 10px;
-        background: #fff7ed;
-        border-left: 5px solid #f97316;
+        background: #fff8eb;
+        border: 1px solid #fed7aa;
+        border-left: 4px solid #f59e0b;
         color: #7c2d12;
         margin-bottom: 20px;
     }
 
     .reference {
-        padding: 15px;
+        padding: 16px 18px;
         border-radius: 10px;
-        background: #eff6ff;
-        border-left: 5px solid #3b82f6;
-        color: #1e3a8a;
+        background: #f0f7ff;
+        border: 1px solid #cfe3ff;
+        border-left: 4px solid #3b82f6;
+        color: #1e3a5f;
         margin-bottom: 15px;
     }
 
     .vital {
-        background: white;
-        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        border: 1px solid #e4e7ec;
         border-radius: 12px;
-        padding: 18px;
+        padding: 18px 12px;
         text-align: center;
         min-height: 125px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
     }
 
     .label {
-        color: #64748b;
+        color: #667085;
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
     }
 
     .value {
-        color: #0f172a;
+        color: #172033;
         font-size: 1.7rem;
         font-weight: 800;
-        margin: 6px 0;
+        margin: 8px 0;
     }
 
     .confidence-high {
-        color: #15803d;
-        font-size: 0.8rem;
+        color: #167c4a;
+        font-size: 0.78rem;
         font-weight: 600;
     }
 
     .confidence-medium {
-        color: #ca8a04;
-        font-size: 0.8rem;
+        color: #a15c00;
+        font-size: 0.78rem;
         font-weight: 600;
     }
 
     .confidence-low {
-        color: #dc2626;
-        font-size: 0.8rem;
+        color: #c43232;
+        font-size: 0.78rem;
         font-weight: 600;
+    }
+
+    h1, h2, h3 {
+        color: #172033;
+    }
+
+    .stButton > button {
+        border-radius: 9px;
+        font-weight: 650;
+        min-height: 42px;
+    }
+
+    [data-testid="stMetric"] {
+        background: #ffffff;
+        border: 1px solid #e4e7ec;
+        border-radius: 10px;
+        padding: 12px;
     }
 
     </style>
     """,
     unsafe_allow_html=True
 )
-
-
 # ============================================================
 # HEADER
 # ============================================================
