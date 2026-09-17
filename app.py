@@ -18,127 +18,127 @@ from src.parser import parse_vitals
 st.set_page_config(
     page_title="VitalSight",
     page_icon="🚑",
-    layout="wide",
-    initial_sidebar_state="expanded",
+    layout="wide"
 )
 
 
 # ============================================================
-# THEME-AWARE CSS
+# STYLE
 # ============================================================
 
 st.markdown(
     """
     <style>
 
-    /* Main content */
     .block-container {
         max-width: 1400px;
         padding-top: 2rem;
-        padding-bottom: 3rem;
     }
 
-    /* Header */
-    .vs-title {
+    .title {
         font-size: 2.6rem;
         font-weight: 800;
-        letter-spacing: -0.03em;
-        color: var(--text-color);
-        margin-bottom: 0.1rem;
+        color: #0f172a;
     }
 
-    .vs-subtitle {
-        color: var(--secondary-text-color);
-        margin-bottom: 1.25rem;
+    .subtitle {
+        color: #64748b;
+        margin-bottom: 1rem;
     }
 
-    /* Information boxes */
-    .vs-warning,
-    .vs-reference {
-        padding: 16px 18px;
+    .warning {
+        padding: 15px;
         border-radius: 10px;
-        margin-bottom: 18px;
-        line-height: 1.55;
-        color: var(--text-color);
+        background: #fff7ed;
+        border-left: 5px solid #f97316;
+        color: #7c2d12;
+        margin-bottom: 20px;
     }
 
-    .vs-warning {
-        background: rgba(245, 158, 11, 0.10);
-        border: 1px solid rgba(245, 158, 11, 0.28);
-        border-left: 4px solid #f59e0b;
+    .reference {
+        padding: 15px;
+        border-radius: 10px;
+        background: #eff6ff;
+        border-left: 5px solid #3b82f6;
+        color: #1e3a8a;
+        margin-bottom: 15px;
     }
 
-    .vs-reference {
-        background: rgba(59, 130, 246, 0.10);
-        border: 1px solid rgba(59, 130, 246, 0.28);
-        border-left: 4px solid #3b82f6;
-    }
-
-    /* Vital cards */
-    .vs-vital {
-        background: var(--secondary-background-color);
-        color: var(--text-color);
-        border: 1px solid rgba(128, 128, 128, 0.25);
+    .vital {
+        background: white;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
-        padding: 18px 10px;
+        padding: 18px;
         text-align: center;
         min-height: 125px;
     }
 
-    .vs-label {
-        color: var(--secondary-text-color);
+    .label {
+        color: #64748b;
         font-weight: 600;
-        font-size: 0.82rem;
+        font-size: 0.85rem;
     }
 
-    .vs-value {
-        color: var(--text-color);
-        font-size: 1.65rem;
+    .value {
+        color: #0f172a;
+        font-size: 1.7rem;
         font-weight: 800;
-        margin: 8px 0;
+        margin: 6px 0;
     }
 
-    .vs-confidence-high {
-        color: #22c55e;
-        font-size: 0.78rem;
+    .confidence-high {
+        color: #15803d;
+        font-size: 0.8rem;
         font-weight: 600;
     }
 
-    .vs-confidence-medium {
-        color: #eab308;
-        font-size: 0.78rem;
+    .confidence-medium {
+        color: #ca8a04;
+        font-size: 0.8rem;
         font-weight: 600;
     }
 
-    .vs-confidence-low {
-        color: #ef4444;
-        font-size: 0.78rem;
+    .confidence-low {
+        color: #dc2626;
+        font-size: 0.8rem;
         font-weight: 600;
-    }
-
-    /* Metrics */
-    [data-testid="stMetric"] {
-        background: var(--secondary-background-color);
-        border: 1px solid rgba(128, 128, 128, 0.25);
-        border-radius: 10px;
-        padding: 12px;
-    }
-
-    /* Buttons */
-    .stButton > button {
-        border-radius: 9px;
-        font-weight: 650;
-        min-height: 42px;
-    }
-
-    /* Dividers */
-    hr {
-        border-color: rgba(128, 128, 128, 0.20);
     }
 
     </style>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
+# HEADER
+# ============================================================
+
+st.markdown(
+    '<div class="title">🚑 VitalSight</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="subtitle">'
+    'Monitor image reader • OCR • ML trend analysis • '
+    'clinical reference'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <div class="warning">
+    <strong>⚠️ Reference / educational prototype</strong><br>
+    VitalSight is not a medical device and has not been
+    clinically validated. Extracted values must be verified
+    against the actual monitor and patient assessment.
+    Do not use this application as a substitute for clinical
+    judgment, medical direction, or local protocols.
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
 
@@ -157,334 +157,6 @@ if "history" not in st.session_state:
 
 
 # ============================================================
-# HELPERS
-# ============================================================
-
-def as_number(value):
-    """Safely convert a value to float."""
-    if value is None:
-        return None
-
-    try:
-        value = float(value)
-    except (TypeError, ValueError):
-        return None
-
-    return value
-
-
-def safe_int(value, minimum=0, maximum=1000):
-    """Safely convert a value to an integer inside bounds."""
-    number = as_number(value)
-
-    if number is None:
-        return minimum
-
-    if minimum <= number <= maximum:
-        return int(round(number))
-
-    return minimum
-
-
-def safe_confidence(value):
-    """Normalize OCR confidence to 0.0-1.0."""
-    if value is None:
-        return None
-
-    try:
-        value = float(value)
-    except (TypeError, ValueError):
-        return None
-
-    if value > 1:
-        value /= 100
-
-    return max(0.0, min(1.0, value))
-
-
-def find_confidence(vital_name, value, ocr_results):
-    """Find the strongest OCR confidence associated with a value."""
-
-    if value is None:
-        return None
-
-    vitals = st.session_state.get("vitals")
-
-    if isinstance(vitals, dict):
-
-        direct = safe_confidence(
-            vitals.get(f"{vital_name}_confidence")
-        )
-
-        if direct is not None:
-            return direct
-
-    target = as_number(value)
-
-    if target is None:
-        return None
-
-    best = None
-
-    for item in ocr_results:
-
-        if not isinstance(item, dict):
-            continue
-
-        text = str(item.get("text", ""))
-
-        confidence = safe_confidence(
-            item.get("confidence")
-        )
-
-        if confidence is None:
-            continue
-
-        if vital_name == "bp":
-
-            if re.search(
-                r"\d{2,3}\s*[/\-]\s*\d{2,3}",
-                text
-            ):
-                best = (
-                    confidence
-                    if best is None
-                    else max(best, confidence)
-                )
-
-            continue
-
-        numbers = re.findall(
-            r"\d+(?:\.\d+)?",
-            text
-        )
-
-        for number in numbers:
-
-            try:
-                detected = float(number)
-            except ValueError:
-                continue
-
-            if abs(detected - target) < 0.01:
-
-                best = (
-                    confidence
-                    if best is None
-                    else max(best, confidence)
-                )
-
-    return best
-
-
-def confidence_html(confidence):
-
-    if confidence is None:
-
-        return (
-            '<span class="vs-confidence-low">'
-            'OCR confidence unavailable'
-            '</span>'
-        )
-
-    if confidence >= 0.80:
-        css = "vs-confidence-high"
-    elif confidence >= 0.50:
-        css = "vs-confidence-medium"
-    else:
-        css = "vs-confidence-low"
-
-    return (
-        f'<span class="{css}">'
-        f'OCR confidence: {confidence:.0%}'
-        f'</span>'
-    )
-
-
-def normalize_history():
-
-    normalized = []
-
-    for reading in st.session_state.history:
-
-        normalized.append(
-            {
-                "time": reading.get("time", datetime.now()),
-                "hr": safe_int(reading.get("hr"), 0, 300),
-                "spo2": safe_int(reading.get("spo2"), 0, 100),
-                "bp_sys": safe_int(reading.get("bp_sys"), 0, 300),
-                "bp_dia": safe_int(reading.get("bp_dia"), 0, 200),
-                "rr": safe_int(reading.get("rr"), 0, 100),
-                "etco2": safe_int(reading.get("etco2"), 0, 150),
-            }
-        )
-
-    return normalized
-
-
-def run_bp_ocr(image):
-
-    try:
-        results = extract_bp_candidates(image)
-    except Exception:
-        return None, None
-
-    if not isinstance(results, list):
-        return None, None
-
-    best_bp = None
-    best_confidence = None
-
-    for result in results:
-
-        if not isinstance(result, dict):
-            continue
-
-        text = str(result.get("text", ""))
-
-        confidence = safe_confidence(
-            result.get("confidence")
-        )
-
-        match = re.search(
-            r"(\d{2,3})\s*[/\-]\s*(\d{2,3})",
-            text
-        )
-
-        if not match:
-            continue
-
-        systolic = int(match.group(1))
-        diastolic = int(match.group(2))
-
-        if not (
-            50 <= systolic <= 250
-            and 20 <= diastolic <= 150
-            and systolic > diastolic
-        ):
-            continue
-
-        if best_bp is None:
-            best_bp = (systolic, diastolic)
-            best_confidence = confidence
-            continue
-
-        current_score = (
-            -1
-            if confidence is None
-            else confidence
-        )
-
-        best_score = (
-            -1
-            if best_confidence is None
-            else best_confidence
-        )
-
-        if current_score > best_score:
-            best_bp = (systolic, diastolic)
-            best_confidence = confidence
-
-    return best_bp, best_confidence
-
-
-def make_dark_safe_chart(chart_df):
-
-    fig = go.Figure()
-
-    traces = [
-        ("HR", "#ef4444"),
-        ("SpO2", "#22c55e"),
-        ("RR", "#3b82f6"),
-        ("EtCO2", "#a855f7"),
-    ]
-
-    for column, color in traces:
-
-        if column not in chart_df.columns:
-            continue
-
-        fig.add_trace(
-            go.Scatter(
-                x=chart_df["time"],
-                y=chart_df[column],
-                mode="lines+markers",
-                name=column,
-                line={
-                    "color": color,
-                    "width": 2,
-                },
-                marker={
-                    "color": color,
-                    "size": 7,
-                },
-            )
-        )
-
-    fig.update_layout(
-        height=420,
-        margin=dict(
-            l=20,
-            r=20,
-            t=30,
-            b=20,
-        ),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(
-            color="#9ca3af"
-        ),
-        legend=dict(
-            bgcolor="rgba(0,0,0,0)"
-        ),
-        xaxis=dict(
-            title="Time",
-            gridcolor="rgba(128,128,128,0.18)",
-            zerolinecolor="rgba(128,128,128,0.18)",
-        ),
-        yaxis=dict(
-            title="Value",
-            gridcolor="rgba(128,128,128,0.18)",
-            zerolinecolor="rgba(128,128,128,0.18)",
-        ),
-    )
-
-    return fig
-
-
-# ============================================================
-# HEADER
-# ============================================================
-
-st.markdown(
-    '<div class="vs-title">🚑 VitalSight</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    '<div class="vs-subtitle">'
-    'Monitor image reader • OCR • ML trend analysis • '
-    'clinical reference'
-    '</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-    <div class="vs-warning">
-    <strong>⚠️ Reference / educational prototype</strong><br>
-    VitalSight is not a medical device and has not been
-    clinically validated. Extracted values must be verified
-    against the actual monitor and patient assessment.
-    Do not use this application as a substitute for clinical
-    judgment, medical direction, or local protocols.
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-# ============================================================
 # SIDEBAR
 # ============================================================
 
@@ -496,12 +168,12 @@ with st.sidebar:
         "Age",
         min_value=0,
         max_value=120,
-        value=30,
+        value=30
     )
 
     complaint = st.text_input(
         "Chief complaint",
-        placeholder="Optional",
+        placeholder="Optional"
     )
 
     st.divider()
@@ -519,79 +191,325 @@ st.subheader("📷 Monitor Image")
 
 uploaded = st.file_uploader(
     "Upload a monitor photograph",
-    type=["jpg", "jpeg", "png"],
+    type=["jpg", "jpeg", "png"]
 )
+
 
 if uploaded:
 
-    try:
+    image = Image.open(
+        uploaded
+    ).convert("RGB")
 
-        image = Image.open(uploaded).convert("RGB")
-
-        st.image(
-            image,
-            caption="Uploaded monitor",
-            use_container_width=True,
-        )
-
-    except Exception as error:
-
-        st.error(
-            f"Could not open the image: {error}"
-        )
-
-        st.stop()
+    st.image(
+        image,
+        caption="Uploaded monitor",
+        use_container_width=True
+    )
 
     if st.button(
         "🔍 Read Monitor",
         type="primary",
-        use_container_width=True,
+        use_container_width=True
     ):
 
-        with st.spinner("Reading monitor..."):
+        with st.spinner(
+            "Reading monitor..."
+        ):
 
             try:
 
+                # ------------------------------------------------
                 # OCR
-                ocr_results = extract_text(image)
+                # ------------------------------------------------
 
-                if not isinstance(ocr_results, list):
+                ocr_results = extract_text(
+                    image
+                )
+
+                if not isinstance(
+                    ocr_results,
+                    list
+                ):
+
                     ocr_results = []
 
-                st.session_state.ocr = ocr_results
+                st.session_state.ocr = (
+                    ocr_results
+                )
 
-                # Parse values
-                vitals = parse_vitals(ocr_results)
+                # ------------------------------------------------
+                # Parse vitals
+                # ------------------------------------------------
 
-                if not isinstance(vitals, dict):
+                vitals = parse_vitals(
+                    ocr_results
+                )
+
+                if not isinstance(
+                    vitals,
+                    dict
+                ):
+
                     vitals = {}
 
+                # ------------------------------------------------
                 # BP-specific OCR
-                best_bp, best_bp_confidence = run_bp_ocr(image)
+                # ------------------------------------------------
 
-                if best_bp is not None:
+                bp_results = extract_bp_candidates(
+                    image
+                )
 
-                    vitals["bp_sys"] = best_bp[0]
-                    vitals["bp_dia"] = best_bp[1]
+                best_bp = None
+                best_bp_confidence = None
 
-                    if best_bp_confidence is not None:
-                        vitals["bp_confidence"] = (
-                            best_bp_confidence
+                for result in bp_results:
+
+                    text = str(
+                        result.get(
+                            "text",
+                            ""
+                        )
+                    )
+
+                    confidence = float(
+                        result.get(
+                            "confidence",
+                            0
+                        )
+                    )
+
+                    match = re.search(
+                        r"(\d{2,3})\s*[/\-]\s*(\d{2,3})",
+                        text
+                    )
+
+                    if not match:
+                        continue
+
+                    systolic = int(
+                        match.group(1)
+                    )
+
+                    diastolic = int(
+                        match.group(2)
+                    )
+
+                    if not (
+                        50 <= systolic <= 250
+                        and 20 <= diastolic <= 150
+                        and systolic > diastolic
+                    ):
+
+                        continue
+
+                    if (
+                        best_bp_confidence is None
+                        or confidence > best_bp_confidence
+                    ):
+
+                        best_bp = (
+                            systolic,
+                            diastolic
                         )
 
-                st.session_state.vitals = vitals
+                        best_bp_confidence = (
+                            confidence
+                        )
+
+                if best_bp:
+
+                    vitals["bp_sys"] = (
+                        best_bp[0]
+                    )
+
+                    vitals["bp_dia"] = (
+                        best_bp[1]
+                    )
+
+                    vitals["bp_confidence"] = (
+                        best_bp_confidence
+                    )
+
+                st.session_state.vitals = (
+                    vitals
+                )
 
                 st.success(
                     "Monitor reading complete."
                 )
 
-            except Exception as error:
-
-                st.session_state.vitals = None
+            except Exception as e:
 
                 st.error(
-                    f"Reader error: {error}"
+                    f"Reader error: {e}"
                 )
+
+
+# ============================================================
+# CONFIDENCE
+# ============================================================
+
+def find_confidence(
+    vital_name,
+    value,
+    ocr_results
+):
+
+    vitals = st.session_state.vitals
+
+    if isinstance(
+        vitals,
+        dict
+    ):
+
+        parser_confidence = vitals.get(
+            f"{vital_name}_confidence"
+        )
+
+        if isinstance(
+            parser_confidence,
+            (int, float)
+        ):
+
+            return float(
+                parser_confidence
+            )
+
+    if value is None:
+        return None
+
+    best = None
+
+    for item in ocr_results:
+
+        if not isinstance(
+            item,
+            dict
+        ):
+
+            continue
+
+        text = str(
+            item.get(
+                "text",
+                ""
+            )
+        )
+
+        confidence = float(
+            item.get(
+                "confidence",
+                0
+            )
+        )
+
+        numbers = re.findall(
+            r"\d+(?:\.\d+)?",
+            text
+        )
+
+        if not numbers:
+            continue
+
+        if vital_name == "bp":
+
+            if "/" in text:
+
+                if (
+                    best is None
+                    or confidence > best
+                ):
+
+                    best = confidence
+
+            continue
+
+        try:
+
+            detected = float(
+                numbers[0]
+            )
+
+        except ValueError:
+
+            continue
+
+        try:
+
+            target = float(
+                value
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            continue
+
+        if abs(
+            detected - target
+        ) < 0.01:
+
+            if (
+                best is None
+                or confidence > best
+            ):
+
+                best = confidence
+
+    return best
+
+
+def confidence_html(
+    confidence
+):
+
+    if confidence is None:
+
+        return (
+            '<span class="confidence-low">'
+            'OCR confidence unavailable'
+            '</span>'
+        )
+
+    if confidence >= 0.80:
+
+        css = "confidence-high"
+
+    elif confidence >= 0.50:
+
+        css = "confidence-medium"
+
+    else:
+
+        css = "confidence-low"
+
+    return (
+        f'<span class="{css}">'
+        f'OCR confidence: {confidence:.0%}'
+        f'</span>'
+    )
+
+
+def safe_int(
+    value,
+    minimum,
+    maximum
+):
+
+    if isinstance(
+        value,
+        (int, float)
+    ):
+
+        if minimum <= value <= maximum:
+
+            return int(value)
+
+    return 0
 
 
 # ============================================================
@@ -608,73 +526,114 @@ if st.session_state.vitals:
         "❤️ Extracted Vital Signs"
     )
 
-    hr = as_number(vitals.get("hr"))
-    spo2 = as_number(vitals.get("spo2"))
-    bp_sys = as_number(vitals.get("bp_sys"))
-    bp_dia = as_number(vitals.get("bp_dia"))
-    rr = as_number(vitals.get("rr"))
-    etco2 = as_number(vitals.get("etco2"))
+    hr = vitals.get("hr")
+    spo2 = vitals.get("spo2")
+    bp_sys = vitals.get("bp_sys")
+    bp_dia = vitals.get("bp_dia")
+    rr = vitals.get("rr")
+    etco2 = vitals.get("etco2")
 
-    if bp_sys is not None and bp_dia is not None:
+    if (
+        isinstance(bp_sys, (int, float))
+        and isinstance(bp_dia, (int, float))
+    ):
+
         bp_display = (
-            f"{bp_sys:.0f}/{bp_dia:.0f} mmHg"
+            f"{bp_sys:.0f}/"
+            f"{bp_dia:.0f} mmHg"
         )
+
     else:
+
         bp_display = "--"
 
     cards = [
+
         (
             "HR",
-            f"{hr:.0f} bpm" if hr is not None else "--",
+            (
+                f"{hr:.0f} bpm"
+                if isinstance(
+                    hr,
+                    (int, float)
+                )
+                else "--"
+            ),
             find_confidence(
                 "hr",
                 hr,
-                st.session_state.ocr,
-            ),
+                st.session_state.ocr
+            )
         ),
+
         (
             "SpO₂",
-            f"{spo2:.0f}%" if spo2 is not None else "--",
+            (
+                f"{spo2:.0f}%"
+                if isinstance(
+                    spo2,
+                    (int, float)
+                )
+                else "--"
+            ),
             find_confidence(
                 "spo2",
                 spo2,
-                st.session_state.ocr,
-            ),
+                st.session_state.ocr
+            )
         ),
+
         (
             "Blood Pressure",
             bp_display,
             find_confidence(
                 "bp",
                 bp_display,
-                st.session_state.ocr,
-            ),
+                st.session_state.ocr
+            )
         ),
+
         (
             "RR",
-            f"{rr:.0f} /min" if rr is not None else "--",
+            (
+                f"{rr:.0f} /min"
+                if isinstance(
+                    rr,
+                    (int, float)
+                )
+                else "--"
+            ),
             find_confidence(
                 "rr",
                 rr,
-                st.session_state.ocr,
-            ),
+                st.session_state.ocr
+            )
         ),
+
         (
             "EtCO₂",
-            f"{etco2:.0f} mmHg"
-            if etco2 is not None
-            else "--",
+            (
+                f"{etco2:.0f} mmHg"
+                if isinstance(
+                    etco2,
+                    (int, float)
+                )
+                else "--"
+            ),
             find_confidence(
                 "etco2",
                 etco2,
-                st.session_state.ocr,
-            ),
-        ),
+                st.session_state.ocr
+            )
+        )
     ]
 
     columns = st.columns(5)
 
-    for column, card in zip(columns, cards):
+    for column, card in zip(
+        columns,
+        cards
+    ):
 
         label, value, confidence = card
 
@@ -682,19 +641,21 @@ if st.session_state.vitals:
 
             st.markdown(
                 f"""
-                <div class="vs-vital">
-                    <div class="vs-label">
-                        {label}
-                    </div>
+                <div class="vital">
 
-                    <div class="vs-value">
-                        {value}
-                    </div>
+                <div class="label">
+                {label}
+                </div>
 
-                    {confidence_html(confidence)}
+                <div class="value">
+                {value}
+                </div>
+
+                {confidence_html(confidence)}
+
                 </div>
                 """,
-                unsafe_allow_html=True,
+                unsafe_allow_html=True
             )
 
 
@@ -702,7 +663,9 @@ if st.session_state.vitals:
     # VERIFY
     # ========================================================
 
-    st.subheader("✏️ Verify Values")
+    st.subheader(
+        "✏️ Verify Values"
+    )
 
     st.caption(
         "Confirm the displayed values against the monitor "
@@ -717,14 +680,22 @@ if st.session_state.vitals:
             "HR",
             min_value=0,
             max_value=300,
-            value=safe_int(hr, 0, 300),
+            value=safe_int(
+                hr,
+                0,
+                300
+            )
         )
 
         verified_spo2 = st.number_input(
             "SpO₂",
             min_value=0,
             max_value=100,
-            value=safe_int(spo2, 0, 100),
+            value=safe_int(
+                spo2,
+                0,
+                100
+            )
         )
 
     with c2:
@@ -733,14 +704,22 @@ if st.session_state.vitals:
             "Systolic BP",
             min_value=0,
             max_value=300,
-            value=safe_int(bp_sys, 0, 300),
+            value=safe_int(
+                bp_sys,
+                0,
+                300
+            )
         )
 
         verified_dia = st.number_input(
             "Diastolic BP",
             min_value=0,
             max_value=200,
-            value=safe_int(bp_dia, 0, 200),
+            value=safe_int(
+                bp_dia,
+                0,
+                200
+            )
         )
 
     with c3:
@@ -749,33 +728,39 @@ if st.session_state.vitals:
             "RR",
             min_value=0,
             max_value=100,
-            value=safe_int(rr, 0, 100),
+            value=safe_int(
+                rr,
+                0,
+                100
+            )
         )
 
         verified_etco2 = st.number_input(
             "EtCO₂",
             min_value=0,
             max_value=150,
-            value=safe_int(etco2, 0, 150),
+            value=safe_int(
+                etco2,
+                0,
+                150
+            )
         )
+
 
     if st.button(
         "➕ Add Verified Reading",
-        use_container_width=True,
+        use_container_width=True
     ):
 
-        # IMPORTANT:
-        # Keep these keys lowercase because src.ml expects
-        # lowercase vital names.
         st.session_state.history.append(
             {
                 "time": datetime.now(),
-                "hr": verified_hr,
-                "spo2": verified_spo2,
-                "bp_sys": verified_sys,
-                "bp_dia": verified_dia,
-                "rr": verified_rr,
-                "etco2": verified_etco2,
+                "HR": verified_hr,
+                "SpO2": verified_spo2,
+                "BP Sys": verified_sys,
+                "BP Dia": verified_dia,
+                "RR": verified_rr,
+                "EtCO2": verified_etco2
             }
         )
 
@@ -792,26 +777,34 @@ if st.session_state.ocr:
 
     st.divider()
 
-    with st.expander("🔎 OCR Details"):
+    with st.expander(
+        "🔎 OCR Details"
+    ):
 
         for item in st.session_state.ocr:
 
-            if not isinstance(item, dict):
+            if not isinstance(
+                item,
+                dict
+            ):
+
                 continue
 
-            text = item.get("text", "")
-
-            confidence = safe_confidence(
-                item.get("confidence")
+            text = item.get(
+                "text",
+                ""
             )
 
-            if confidence is None:
-                confidence_text = "N/A"
-            else:
-                confidence_text = f"{confidence:.0%}"
+            confidence = float(
+                item.get(
+                    "confidence",
+                    0
+                )
+            )
 
             st.write(
-                f"**{text}** — {confidence_text}"
+                f"**{text}** — "
+                f"{confidence:.0%}"
             )
 
 
@@ -823,35 +816,28 @@ if st.session_state.history:
 
     st.divider()
 
-    st.subheader("📈 Patient Timeline")
+    st.subheader(
+        "📈 Patient Timeline"
+    )
 
-    history = normalize_history()
+    df = pd.DataFrame(
+        st.session_state.history
+    )
 
-    chart_df = pd.DataFrame(history)
-
-    display_df = chart_df.copy()
+    display_df = df.copy()
 
     display_df["time"] = (
         pd.to_datetime(
             display_df["time"]
-        ).dt.strftime("%H:%M:%S")
-    )
-
-    display_df = display_df.rename(
-        columns={
-            "hr": "HR",
-            "spo2": "SpO₂",
-            "bp_sys": "BP Sys",
-            "bp_dia": "BP Dia",
-            "rr": "RR",
-            "etco2": "EtCO₂",
-        }
+        ).dt.strftime(
+            "%H:%M:%S"
+        )
     )
 
     st.dataframe(
         display_df,
         use_container_width=True,
-        hide_index=True,
+        hide_index=True
     )
 
 
@@ -859,16 +845,38 @@ if st.session_state.history:
     # TREND GRAPH
     # ========================================================
 
-    st.subheader("📊 Vital Trends")
+    chart_df = pd.DataFrame(
+        st.session_state.history
+    )
 
-    fig = make_dark_safe_chart(chart_df)
+    fig = go.Figure()
+
+    for column in [
+        "HR",
+        "SpO2",
+        "RR",
+        "EtCO2"
+    ]:
+
+        fig.add_trace(
+            go.Scatter(
+                x=chart_df["time"],
+                y=chart_df[column],
+                mode="lines+markers",
+                name=column
+            )
+        )
+
+    fig.update_layout(
+        template="plotly_white",
+        height=400,
+        xaxis_title="Time",
+        yaxis_title="Value"
+    )
 
     st.plotly_chart(
         fig,
-        use_container_width=True,
-        config={
-            "displayModeBar": False,
-        },
+        use_container_width=True
     )
 
 
@@ -878,21 +886,25 @@ if st.session_state.history:
 
     st.divider()
 
-    st.subheader("🤖 ML Trend Estimate")
+    st.subheader(
+        "🤖 ML Trend Estimate"
+    )
 
     st.markdown(
         """
-        <div class="vs-reference">
+        <div class="reference">
         <strong>Prototype model:</strong>
         This section estimates the direction of the recorded
         vital-sign trajectory. It is not a clinical deterioration
         score and should not be interpreted as one.
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
-    if len(history) < 3:
+    if len(
+        st.session_state.history
+    ) < 3:
 
         st.info(
             "Add at least 3 verified readings to generate "
@@ -905,7 +917,7 @@ if st.session_state.history:
 
             from src.ml import (
                 train_trend_model,
-                predict_trend,
+                predict_trend
             )
 
             model = train_trend_model()
@@ -913,7 +925,7 @@ if st.session_state.history:
             prediction, confidence, probabilities = (
                 predict_trend(
                     model,
-                    history,
+                    st.session_state.history
                 )
             )
 
@@ -938,27 +950,28 @@ if st.session_state.history:
                     f"({confidence:.0%} model confidence)"
                 )
 
+
             p1, p2, p3 = st.columns(3)
 
             with p1:
 
                 st.metric(
                     "Improving",
-                    f"{probabilities.get('improving', 0):.0%}",
+                    f"{probabilities.get('improving', 0):.0%}"
                 )
 
             with p2:
 
                 st.metric(
                     "Stable",
-                    f"{probabilities.get('stable', 0):.0%}",
+                    f"{probabilities.get('stable', 0):.0%}"
                 )
 
             with p3:
 
                 st.metric(
                     "Worsening",
-                    f"{probabilities.get('worsening', 0):.0%}",
+                    f"{probabilities.get('worsening', 0):.0%}"
                 )
 
             st.caption(
@@ -967,15 +980,15 @@ if st.session_state.history:
                 "clinical risk probabilities."
             )
 
-        except Exception as error:
+        except Exception as e:
 
             st.warning(
-                f"ML trend model unavailable: {error}"
+                f"ML trend model unavailable: {e}"
             )
 
 
 # ============================================================
-# CLINICAL REFERENCE
+# CLINICAL REFERENCE / DIFFERENTIAL
 # ============================================================
 
 if st.session_state.vitals:
@@ -988,7 +1001,7 @@ if st.session_state.vitals:
 
     st.markdown(
         """
-        <div class="vs-reference">
+        <div class="reference">
         <strong>Reference only — not a diagnosis.</strong><br>
         The items below are possible clinical considerations
         that may be associated with combinations of observed
@@ -998,32 +1011,45 @@ if st.session_state.vitals:
         medical direction, and applicable protocols.
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
-    hr_value = as_number(
-        st.session_state.vitals.get("hr")
+    # --------------------------------------------------------
+    # Pull values
+    # --------------------------------------------------------
+
+    hr_value = st.session_state.vitals.get(
+        "hr"
     )
 
-    spo2_value = as_number(
-        st.session_state.vitals.get("spo2")
+    spo2_value = st.session_state.vitals.get(
+        "spo2"
     )
 
-    systolic_value = as_number(
-        st.session_state.vitals.get("bp_sys")
+    systolic_value = st.session_state.vitals.get(
+        "bp_sys"
     )
 
-    rr_value = as_number(
-        st.session_state.vitals.get("rr")
+    rr_value = st.session_state.vitals.get(
+        "rr"
     )
 
-    etco2_value = as_number(
-        st.session_state.vitals.get("etco2")
+    etco2_value = st.session_state.vitals.get(
+        "etco2"
     )
+
 
     considerations = []
 
-    if hr_value is not None and hr_value > 100:
+
+    # --------------------------------------------------------
+    # Tachycardia
+    # --------------------------------------------------------
+
+    if (
+        isinstance(hr_value, (int, float))
+        and hr_value > 100
+    ):
 
         considerations.append(
             {
@@ -1037,12 +1063,20 @@ if st.session_state.vitals:
                     "Hypovolemia",
                     "Hypoxemia",
                     "Medication or stimulant effect",
-                    "Primary cardiac rhythm disturbance",
-                ],
+                    "Primary cardiac rhythm disturbance"
+                ]
             }
         )
 
-    if hr_value is not None and hr_value < 60:
+
+    # --------------------------------------------------------
+    # Bradycardia
+    # --------------------------------------------------------
+
+    if (
+        isinstance(hr_value, (int, float))
+        and hr_value < 60
+    ):
 
         considerations.append(
             {
@@ -1055,12 +1089,20 @@ if st.session_state.vitals:
                     "Medication effect",
                     "Hypothermia",
                     "Conduction disturbance",
-                    "Hypoxia or other physiologic stressors",
-                ],
+                    "Hypoxia or other physiologic stressors"
+                ]
             }
         )
 
-    if spo2_value is not None and spo2_value < 94:
+
+    # --------------------------------------------------------
+    # Low oxygen saturation
+    # --------------------------------------------------------
+
+    if (
+        isinstance(spo2_value, (int, float))
+        and spo2_value < 94
+    ):
 
         considerations.append(
             {
@@ -1073,13 +1115,21 @@ if st.session_state.vitals:
                     "Pulmonary disease",
                     "Airway obstruction",
                     "V/Q mismatch",
-                    "Measurement artifact or poor probe signal",
-                ],
+                    "Measurement artifact or poor probe signal"
+                ]
             }
         )
 
+
+    # --------------------------------------------------------
+    # Hypotension
+    # --------------------------------------------------------
+
     if (
-        systolic_value is not None
+        isinstance(
+            systolic_value,
+            (int, float)
+        )
         and systolic_value < 90
     ):
 
@@ -1095,12 +1145,20 @@ if st.session_state.vitals:
                     "Distributive physiology",
                     "Cardiac causes",
                     "Medication effect",
-                    "Measurement error or artifact",
-                ],
+                    "Measurement error or artifact"
+                ]
             }
         )
 
-    if rr_value is not None and rr_value > 20:
+
+    # --------------------------------------------------------
+    # Tachypnea
+    # --------------------------------------------------------
+
+    if (
+        isinstance(rr_value, (int, float))
+        and rr_value > 20
+    ):
 
         considerations.append(
             {
@@ -1113,12 +1171,20 @@ if st.session_state.vitals:
                     "Metabolic acidosis",
                     "Pain or anxiety",
                     "Fever",
-                    "Pulmonary pathology",
-                ],
+                    "Pulmonary pathology"
+                ]
             }
         )
 
-    if etco2_value is not None and etco2_value < 35:
+
+    # --------------------------------------------------------
+    # Low EtCO2
+    # --------------------------------------------------------
+
+    if (
+        isinstance(etco2_value, (int, float))
+        and etco2_value < 35
+    ):
 
         considerations.append(
             {
@@ -1132,10 +1198,15 @@ if st.session_state.vitals:
                     "Reduced pulmonary perfusion",
                     "Low cardiac output states",
                     "Ventilation-perfusion changes",
-                    "Sampling or equipment issues",
-                ],
+                    "Sampling or equipment issues"
+                ]
             }
         )
+
+
+    # --------------------------------------------------------
+    # Display
+    # --------------------------------------------------------
 
     if not considerations:
 
@@ -1148,20 +1219,28 @@ if st.session_state.vitals:
 
         for item in considerations:
 
-            with st.expander(item["title"]):
+            with st.expander(
+                item["title"]
+            ):
 
                 st.write(
                     "**Observed finding(s)**"
                 )
 
                 for finding in item["findings"]:
-                    st.write(f"- {finding}")
+
+                    st.write(
+                        f"- {finding}"
+                    )
 
                 st.write(
                     "**Possible clinical considerations**"
                 )
 
-                for consideration in item["considerations"]:
+                for consideration in item[
+                    "considerations"
+                ]:
+
                     st.write(
                         f"- {consideration}"
                     )
