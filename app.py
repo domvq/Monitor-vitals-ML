@@ -1,8 +1,9 @@
-
+id="4k7q1z"
 import streamlit as st
 from PIL import Image
 
-from src.ocr import extract_text, extract_bp_candidates
+from src.ocr import extract_text
+from src.parser import parse_vitals
 
 
 st.set_page_config(
@@ -15,7 +16,7 @@ st.set_page_config(
 st.title("🚑 VitalSight")
 
 st.caption(
-    "OCR diagnostic version"
+    "OCR + parser diagnostic"
 )
 
 
@@ -37,17 +38,20 @@ if uploaded:
         use_container_width=True,
     )
 
+
     if st.button(
         "🔍 Read Monitor",
         type="primary",
     ):
 
-        st.write("Starting OCR...")
+        # ====================================================
+        # OCR
+        # ====================================================
 
         try:
 
             with st.spinner(
-                "Reading monitor..."
+                "Running OCR..."
             ):
 
                 ocr_results = extract_text(
@@ -55,79 +59,66 @@ if uploaded:
                 )
 
             st.success(
-                "General OCR completed."
+                "OCR completed."
             )
-
-            st.write(
-                f"Detected {len(ocr_results)} "
-                "text regions."
-            )
-
-            if ocr_results:
-
-                st.subheader(
-                    "OCR Results"
-                )
-
-                for item in ocr_results:
-
-                    st.write(
-                        f"**{item.get('text', '')}** "
-                        f"— "
-                        f"{item.get('confidence', 0):.0%}"
-                    )
 
         except Exception as e:
 
             st.error(
-                "General OCR failed."
+                "OCR failed."
             )
 
             st.exception(e)
 
+            st.stop()
+
 
         # ====================================================
-        # BLOOD PRESSURE
+        # PARSER
         # ====================================================
-
-        st.divider()
-
-        st.subheader(
-            "Blood Pressure OCR"
-        )
 
         try:
 
             with st.spinner(
-                "Searching for blood pressure..."
+                "Parsing vital signs..."
             ):
 
-                bp_results = extract_bp_candidates(
-                    image
+                vitals = parse_vitals(
+                    ocr_results
                 )
 
             st.success(
-                "Blood pressure OCR completed."
+                "Parser completed."
             )
 
-            if bp_results:
+            st.subheader(
+                "Parsed Vitals"
+            )
 
-                for result in bp_results:
+            st.write(
+                vitals
+            )
+
+            st.write(
+                "Type:",
+                type(vitals).__name__,
+            )
+
+            if isinstance(
+                vitals,
+                dict,
+            ):
+
+                for key, value in vitals.items():
 
                     st.write(
-                        result
+                        f"**{key}:** {value}"
                     )
-
-            else:
-
-                st.info(
-                    "No blood pressure candidates detected."
-                )
 
         except Exception as e:
 
             st.error(
-                "Blood pressure OCR failed."
+                "Parser failed."
             )
 
             st.exception(e)
