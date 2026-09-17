@@ -6,3 +6,4 @@ plotly
 scikit-learn
 opencv-python-headless
 pytesseract
+easyocr
