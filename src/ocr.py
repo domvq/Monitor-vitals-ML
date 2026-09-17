@@ -1,15 +1,44 @@
 
+import os
 import re
 
 import cv2
 import numpy as np
 import pytesseract
 
-pytesseract.pytesseract.tesseract_cmd = (
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-)
+
+# ============================================================
+# TESSERACT CONFIGURATION
+# ============================================================
+
+# Streamlit Cloud runs Linux.
+# Windows commonly installs Tesseract here.
+if os.name == "nt":
+
+    windows_path = (
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    )
+
+    if os.path.exists(windows_path):
+        pytesseract.pytesseract.tesseract_cmd = (
+            windows_path
+        )
+
+
+# ============================================================
+# IMAGE PREPROCESSING
+# ============================================================
+
+def preprocess_image(image):
+
+    image_array = np.array(
+        image.convert("RGB")
+    )
+
     if image_array.size == 0:
-        raise ValueError("Uploaded image is empty.")
+        raise ValueError(
+            "Uploaded image is empty."
+        )
 
     gray = cv2.cvtColor(
         image_array,
@@ -18,12 +47,16 @@ pytesseract.pytesseract.tesseract_cmd = (
 
     height, width = gray.shape
 
-    # Prevent extremely large uploads
+    # Prevent extremely large images
     # from consuming excessive memory.
     max_dimension = 1800
 
     if max(height, width) > max_dimension:
-        scale = max_dimension / max(height, width)
+
+        scale = (
+            max_dimension
+            / max(height, width)
+        )
 
         gray = cv2.resize(
             gray,
@@ -34,7 +67,7 @@ pytesseract.pytesseract.tesseract_cmd = (
             interpolation=cv2.INTER_AREA
         )
 
-    # Upscale monitor digits.
+    # Upscale digits.
     height, width = gray.shape
 
     gray = cv2.resize(
@@ -52,9 +85,11 @@ pytesseract.pytesseract.tesseract_cmd = (
         tileGridSize=(8, 8)
     )
 
-    enhanced = clahe.apply(gray)
+    enhanced = clahe.apply(
+        gray
+    )
 
-    # Light denoising.
+    # Light noise reduction.
     enhanced = cv2.GaussianBlur(
         enhanced,
         (3, 3),
@@ -64,8 +99,15 @@ pytesseract.pytesseract.tesseract_cmd = (
     return enhanced
 
 
+# ============================================================
+# GENERAL OCR
+# ============================================================
+
 def extract_text(image):
-    processed = preprocess_image(image)
+
+    processed = preprocess_image(
+        image
+    )
 
     data = pytesseract.image_to_data(
         processed,
@@ -75,7 +117,9 @@ def extract_text(image):
 
     detected_text = []
 
-    for i, text in enumerate(data["text"]):
+    for i, text in enumerate(
+        data["text"]
+    ):
 
         text = str(text).strip()
 
@@ -83,16 +127,33 @@ def extract_text(image):
             continue
 
         try:
+
             confidence = float(
                 data["conf"][i]
             )
-        except (ValueError, TypeError):
+
+        except (
+            ValueError,
+            TypeError
+        ):
+
             confidence = 0.0
 
-        x = data["left"][i]
-        y = data["top"][i]
-        w = data["width"][i]
-        h = data["height"][i]
+        x = int(
+            data["left"][i]
+        )
+
+        y = int(
+            data["top"][i]
+        )
+
+        w = int(
+            data["width"][i]
+        )
+
+        h = int(
+            data["height"][i]
+        )
 
         box = [
             [x, y],
@@ -115,11 +176,16 @@ def extract_text(image):
     return detected_text
 
 
-def extract_bp_candidates(image):
-    processed = preprocess_image(image)
+# ============================================================
+# BLOOD PRESSURE OCR
+# ============================================================
 
-    # BP displays generally contain
-    # digits, slash, or dash.
+def extract_bp_candidates(image):
+
+    processed = preprocess_image(
+        image
+    )
+
     config = (
         "--psm 11 "
         "-c tessedit_char_whitelist=0123456789/-"
@@ -132,10 +198,6 @@ def extract_bp_candidates(image):
 
     candidates = []
 
-    # Find values such as:
-    # 120/80
-    # 118/76
-    # 140/90
     matches = re.findall(
         r"\b(\d{2,3})\s*/\s*(\d{2,3})\b",
         text
@@ -145,7 +207,9 @@ def extract_bp_candidates(image):
 
         candidates.append(
             {
-                "text": f"{systolic}/{diastolic}",
+                "text": (
+                    f"{systolic}/{diastolic}"
+                ),
                 "confidence": None,
                 "box": None
             }
