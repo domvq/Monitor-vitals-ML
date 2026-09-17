@@ -30,89 +30,295 @@ st.markdown(
     """
     <style>
 
-    /* ========================================================
-       GLOBAL
-       ======================================================== */
+    /* ============================================================
+       COLOR SYSTEM
+       ============================================================ */
+
+    :root {
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+
+        --card-bg: #ffffff;
+        --card-border: #e2e8f0;
+
+        --warning-bg: #fff7ed;
+        --warning-text: #9a3412;
+        --warning-border: #f97316;
+
+        --reference-bg: #eff6ff;
+        --reference-text: #1e40af;
+        --reference-border: #3b82f6;
+
+        --success: #16a34a;
+        --success-text: #15803d;
+
+        --medium: #ca8a04;
+        --danger: #dc2626;
+    }
+
+
+    /* ============================================================
+       DARK MODE
+       ============================================================ */
+
+    @media (prefers-color-scheme: dark) {
+
+        :root {
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+
+            --card-bg: #1e293b;
+            --card-border: #334155;
+
+            --warning-bg: #431407;
+            --warning-text: #fed7aa;
+            --warning-border: #fb923c;
+
+            --reference-bg: #172554;
+            --reference-text: #bfdbfe;
+            --reference-border: #60a5fa;
+
+            --success: #4ade80;
+            --success-text: #4ade80;
+
+            --medium: #facc15;
+            --danger: #f87171;
+        }
+
+    }
+
+
+    /* ============================================================
+       MAIN PAGE
+       ============================================================ */
 
     .block-container {
         max-width: 1400px;
         padding-top: 2rem;
     }
 
-    /* Main Streamlit text */
+
+    /* ============================================================
+       GENERAL TEXT
+       ============================================================ */
+
     .stApp {
-        color: #0f172a;
+        color: var(--text-primary);
     }
 
-    /* ========================================================
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-primary) !important;
+    }
+
+    p {
+        color: var(--text-secondary);
+    }
+
+
+    /* ============================================================
        HEADER
-       ======================================================== */
+       ============================================================ */
 
     .title {
         font-size: 2.6rem;
         font-weight: 800;
-        color: #0f172a !important;
+        color: var(--text-primary) !important;
         line-height: 1.2;
     }
 
     .subtitle {
-        color: #475569 !important;
+        color: var(--text-muted) !important;
         margin-bottom: 1rem;
-        font-size: 1rem;
     }
 
-    /* ========================================================
-       STREAMLIT HEADINGS
-       ======================================================== */
 
-    h1, h2, h3, h4, h5, h6 {
-        color: #0f172a !important;
-    }
-
-    /* ========================================================
-       STREAMLIT BODY TEXT
-       ======================================================== */
-
-    p, li, label, span {
-        color: #334155;
-    }
-
-    /* ========================================================
+    /* ============================================================
        WARNING
-       ======================================================== */
+       ============================================================ */
 
     .warning {
         padding: 15px;
         border-radius: 10px;
-        background: #fff7ed;
-        border-left: 5px solid #f97316;
-        color: #7c2d12 !important;
+        background: var(--warning-bg);
+        border-left: 5px solid var(--warning-border);
+        color: var(--warning-text) !important;
         margin-bottom: 20px;
     }
 
     .warning strong,
-    .warning br,
     .warning span {
-        color: #7c2d12 !important;
+        color: var(--warning-text) !important;
     }
 
-    /* ========================================================
-       REFERENCE
-       ======================================================== */
+
+    /* ============================================================
+       REFERENCE BOX
+       ============================================================ */
 
     .reference {
         padding: 15px;
         border-radius: 10px;
-        background: #eff6ff;
-        border-left: 5px solid #3b82f6;
-        color: #1e3a8a !important;
+        background: var(--reference-bg);
+        border-left: 5px solid var(--reference-border);
+        color: var(--reference-text) !important;
         margin-bottom: 15px;
     }
 
     .reference strong,
     .reference span {
-        color: #1e3a8a !important;
+        color: var(--reference-text) !important;
     }
+
+
+    /* ============================================================
+       VITAL CARDS
+       ============================================================ */
+
+    .vital {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 18px;
+        text-align: center;
+        min-height: 125px;
+    }
+
+    .label {
+        color: var(--text-secondary) !important;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .value {
+        color: var(--text-primary) !important;
+        font-size: 1.7rem;
+        font-weight: 800;
+        margin: 6px 0;
+    }
+
+
+    /* ============================================================
+       OCR CONFIDENCE
+       ============================================================ */
+
+    .confidence-high {
+        color: var(--success-text) !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .confidence-medium {
+        color: var(--medium) !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .confidence-low {
+        color: var(--danger) !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+
+    /* ============================================================
+       STREAMLIT CAPTIONS
+       ============================================================ */
+
+    [data-testid="stCaptionContainer"] p {
+        color: var(--text-muted) !important;
+    }
+
+
+    /* ============================================================
+       INPUT LABELS
+       ============================================================ */
+
+    [data-testid="stWidgetLabel"] p {
+        color: var(--text-secondary) !important;
+        font-weight: 600;
+    }
+
+
+    /* ============================================================
+       SIDEBAR
+       ============================================================ */
+
+    [data-testid="stSidebar"] {
+        color: var(--text-primary);
+    }
+
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        color: var(--text-primary) !important;
+    }
+
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label {
+        color: var(--text-secondary) !important;
+    }
+
+
+    /* ============================================================
+       EXPANDERS
+       ============================================================ */
+
+    [data-testid="stExpander"] {
+        border-color: var(--card-border);
+    }
+
+    [data-testid="stExpander"] summary p {
+        color: var(--text-primary) !important;
+        font-weight: 600;
+    }
+
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {
+        color: var(--text-secondary) !important;
+    }
+
+
+    /* ============================================================
+       ALERTS
+       ============================================================ */
+
+    [data-testid="stAlert"] p {
+        color: inherit !important;
+    }
+
+
+    /* ============================================================
+       DATAFRAME
+       ============================================================ */
+
+    [data-testid="stDataFrame"] {
+        color: var(--text-primary);
+    }
+
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+
+    button[kind="primary"] p {
+        color: #ffffff !important;
+    }
+
+
+    /* ============================================================
+       DIVIDERS
+       ============================================================ */
+
+    hr {
+        border-color: var(--card-border) !important;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 
     /* ========================================================
        VITAL CARDS
