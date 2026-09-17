@@ -16,7 +16,7 @@ from src.parser import parse_vitals
 # ============================================================
 
 st.set_page_config(
-    page_title="Monitor Vision ML",
+    page_title="Monitor Vitals ML",
     page_icon="🚑",
     layout="wide"
 )
@@ -255,7 +255,7 @@ st.markdown(
 # ============================================================
 
 st.markdown(
-    '<div class="title">🚑 VitalSight</div>',
+    '<div class="title">🚑 Monitor Vitals ML Assessment Prototype</div>',
     unsafe_allow_html=True
 )
 
@@ -271,11 +271,12 @@ st.markdown(
     """
     <div class="warning">
     <strong>⚠️ Reference / educational prototype</strong><br>
-    VitalSight is not a medical device and has not been
-    clinically validated. Extracted values must be verified
-    against the actual monitor and patient assessment.
-    Do not use this application as a substitute for clinical
-    judgment, medical direction, or local protocols.
+    Monitor Vitals ML Assessment Prototype is not a medical 
+    device and has not been clinically validated. Extracted 
+    values must be verified against the actual monitor and 
+    patient assessment. Do not use this application as a  
+    substitute for clinical judgment, medical direction, 
+    or local protocols.
     </div>
     """,
     unsafe_allow_html=True
@@ -1393,7 +1394,7 @@ if st.session_state.vitals:
 st.divider()
 
 st.caption(
-    "VitalSight • Educational computer-vision + ML prototype • "
+    "Monitor Vitals ML Assessment Prototype • Educational computer-vision + ML prototype • "
     "Verify all extracted values against the source monitor."
 )
 
