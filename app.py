@@ -16,7 +16,7 @@ from src.parser import parse_vitals
 # ============================================================
 
 st.set_page_config(
-    page_title="VitalSight",
+    page_title="Monitor Vision ML",
     page_icon="🚑",
     layout="wide"
 )
