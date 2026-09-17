@@ -5,10 +5,9 @@ import cv2
 import numpy as np
 import pytesseract
 
-
-def preprocess_image(image):
-    image_array = np.array(image.convert("RGB"))
-
+pytesseract.pytesseract.tesseract_cmd = (
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+)
     if image_array.size == 0:
         raise ValueError("Uploaded image is empty.")
 
