@@ -2,15 +2,37 @@
 import easyocr
 import numpy as np
 import cv2
+import streamlit as st
 
 
-# Load OCR model once
-reader = easyocr.Reader(["en"])
+# ============================================================
+# OCR MODEL
+# ============================================================
 
+@st.cache_resource(show_spinner="Loading OCR model...")
+def get_reader():
+
+    return easyocr.Reader(
+        ["en"],
+        gpu=False
+    )
+
+
+# ============================================================
+# IMAGE PREPROCESSING
+# ============================================================
 
 def preprocess_image(image):
 
-    image_array = np.array(image)
+    image_array = np.array(
+        image.convert("RGB")
+    )
+
+    if image_array.size == 0:
+
+        raise ValueError(
+            "Uploaded image is empty."
+        )
 
     gray = cv2.cvtColor(
         image_array,
@@ -19,22 +41,52 @@ def preprocess_image(image):
 
     height, width = gray.shape
 
-    # Upscale image
+    # Keep very large images from consuming
+    # excessive memory during OCR.
+    max_dimension = 1800
+
+    if max(
+        height,
+        width
+    ) > max_dimension:
+
+        scale = (
+            max_dimension
+            / max(height, width)
+        )
+
+        gray = cv2.resize(
+            gray,
+            (
+                int(width * scale),
+                int(height * scale)
+            ),
+            interpolation=cv2.INTER_AREA
+        )
+
+    # Moderate upscale
+    height, width = gray.shape
+
     gray = cv2.resize(
         gray,
-        (width * 2, height * 2),
+        (
+            width * 2,
+            height * 2
+        ),
         interpolation=cv2.INTER_CUBIC
     )
 
-    # Improve contrast
+    # Contrast enhancement
     clahe = cv2.createCLAHE(
         clipLimit=2.0,
         tileGridSize=(8, 8)
     )
 
-    enhanced = clahe.apply(gray)
+    enhanced = clahe.apply(
+        gray
+    )
 
-    # Reduce noise
+    # Light noise reduction
     enhanced = cv2.GaussianBlur(
         enhanced,
         (3, 3),
@@ -44,9 +96,17 @@ def preprocess_image(image):
     return enhanced
 
 
+# ============================================================
+# GENERAL OCR
+# ============================================================
+
 def extract_text(image):
 
-    processed = preprocess_image(image)
+    reader = get_reader()
+
+    processed = preprocess_image(
+        image
+    )
 
     results = reader.readtext(
         processed,
@@ -58,18 +118,41 @@ def extract_text(image):
 
     for box, text, confidence in results:
 
-        detected_text.append({
-            "text": text,
-            "confidence": float(confidence),
-            "box": box
-        })
+        text = str(
+            text
+        ).strip()
+
+        if not text:
+            continue
+
+        detected_text.append(
+            {
+                "text": text,
+                "confidence": float(
+                    confidence
+                ),
+                "box": box
+            }
+        )
 
     return detected_text
 
 
+# ============================================================
+# BLOOD PRESSURE OCR
+# ============================================================
+
 def extract_bp_candidates(image):
 
-    image_array = np.array(image)
+    reader = get_reader()
+
+    image_array = np.array(
+        image.convert("RGB")
+    )
+
+    if image_array.size == 0:
+
+        return []
 
     gray = cv2.cvtColor(
         image_array,
@@ -78,15 +161,44 @@ def extract_bp_candidates(image):
 
     height, width = gray.shape
 
-    # Larger upscale for BP digits
+    # Prevent huge images from creating
+    # excessive memory usage.
+    max_dimension = 1800
+
+    if max(
+        height,
+        width
+    ) > max_dimension:
+
+        scale = (
+            max_dimension
+            / max(height, width)
+        )
+
+        gray = cv2.resize(
+            gray,
+            (
+                int(width * scale),
+                int(height * scale)
+            ),
+            interpolation=cv2.INTER_AREA
+        )
+
+    # BP-specific upscale
+    height, width = gray.shape
+
     gray = cv2.resize(
         gray,
-        (width * 3, height * 3),
+        (
+            width * 2,
+            height * 2
+        ),
         interpolation=cv2.INTER_CUBIC
     )
 
-    # Contrast enhancement
-    gray = cv2.equalizeHist(gray)
+    gray = cv2.equalizeHist(
+        gray
+    )
 
     results = reader.readtext(
         gray,
@@ -99,15 +211,22 @@ def extract_bp_candidates(image):
 
     for box, text, confidence in results:
 
-        text = text.strip()
+        text = str(
+            text
+        ).strip()
 
-        if "/" in text:
+        if "/" not in text:
+            continue
 
-            candidates.append({
+        candidates.append(
+            {
                 "text": text,
-                "confidence": float(confidence),
+                "confidence": float(
+                    confidence
+                ),
                 "box": box
-            })
+            }
+        )
 
     return candidates
 
