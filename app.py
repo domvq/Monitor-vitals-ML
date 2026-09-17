@@ -16,410 +16,56 @@ from src.parser import parse_vitals
 # ============================================================
 
 st.set_page_config(
-    page_title="Monitor Vitals ML",
+    page_title="VitalSight",
     page_icon="🚑",
     layout="wide"
 )
+
 
 # ============================================================
 # STYLE
 # ============================================================
 
-st.markdown("""
-<style>
-
-/* Main layout */
-.block-container {
-    max-width: 1400px;
-    padding-top: 2rem;
-}
-
-/* Main text */
-.stApp {
-    color: #e2e8f0;
-}
-
-/* Headers */
-h1, h2, h3, h4, h5, h6 {
-    color: #f8fafc !important;
-}
-
-/* Body text */
-p {
-    color: #cbd5e1;
-}
-
-/* Title */
-.title {
-    font-size: 2.6rem;
-    font-weight: 800;
-    color: #f8fafc !important;
-}
-
-/* Subtitle */
-.subtitle {
-    color: #94a3b8 !important;
-    margin-bottom: 1rem;
-}
-
-/* Warning */
-.warning {
-    padding: 15px;
-    border-radius: 10px;
-    background: #431407;
-    border-left: 5px solid #fb923c;
-    color: #fed7aa !important;
-    margin-bottom: 20px;
-}
-
-.warning strong {
-    color: #fed7aa !important;
-}
-
-/* Reference box */
-.reference {
-    padding: 15px;
-    border-radius: 10px;
-    background: #172554;
-    border-left: 5px solid #60a5fa;
-    color: #bfdbfe !important;
-    margin-bottom: 15px;
-}
-
-.reference strong {
-    color: #bfdbfe !important;
-}
-
-/* Vital cards */
-.vital {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 18px;
-    text-align: center;
-    min-height: 125px;
-}
-
-/* Vital labels */
-.label {
-    color: #94a3b8 !important;
-    font-weight: 600;
-    font-size: 0.85rem;
-}
-
-/* Vital values */
-.value {
-    color: #f8fafc !important;
-    font-size: 1.7rem;
-    font-weight: 800;
-    margin: 6px 0;
-}
-
-/* OCR confidence */
-.confidence-high {
-    color: #4ade80 !important;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.confidence-medium {
-    color: #facc15 !important;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.confidence-low {
-    color: #f87171 !important;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-/* Captions */
-[data-testid="stCaptionContainer"] p {
-    color: #94a3b8 !important;
-}
-
-/* Input labels */
-[data-testid="stWidgetLabel"] p {
-    color: #cbd5e1 !important;
-    font-weight: 600;
-}
-
-/* Sidebar */
-[data-testid="stSidebar"] h1,
-[data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3 {
-    color: #f8fafc !important;
-}
-
-[data-testid="stSidebar"] p,
-[data-testid="stSidebar"] label {
-    color: #cbd5e1 !important;
-}
-
-/* Expanders */
-[data-testid="stExpander"] {
-    border-color: #334155;
-}
-
-[data-testid="stExpander"] summary p {
-    color: #f8fafc !important;
-    font-weight: 600;
-}
-
-[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {
-    color: #cbd5e1 !important;
-}
-
-/* Dividers */
-hr {
-    border-color: #334155 !important;
-}
-
-/* Primary buttons */
-button[kind="primary"] p {
-    color: #ffffff !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-    /* ============================================================
-       MAIN PAGE
-       ============================================================ */
+st.markdown(
+    """
+    <style>
 
     .block-container {
         max-width: 1400px;
         padding-top: 2rem;
     }
 
-
-    /* ============================================================
-       GENERAL TEXT
-       ============================================================ */
-
-    .stApp {
-        color: var(--text-primary);
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--text-primary) !important;
-    }
-
-    p {
-        color: var(--text-secondary);
-    }
-
-
-    /* ============================================================
-       HEADER
-       ============================================================ */
-
     .title {
         font-size: 2.6rem;
         font-weight: 800;
-        color: var(--text-primary) !important;
-        line-height: 1.2;
+        color: #0f172a;
     }
 
     .subtitle {
-        color: var(--text-muted) !important;
+        color: #64748b;
         margin-bottom: 1rem;
     }
-
-
-    /* ============================================================
-       WARNING
-       ============================================================ */
 
     .warning {
         padding: 15px;
         border-radius: 10px;
-        background: var(--warning-bg);
-        border-left: 5px solid var(--warning-border);
-        color: var(--warning-text) !important;
+        background: #fff7ed;
+        border-left: 5px solid #f97316;
+        color: #7c2d12;
         margin-bottom: 20px;
     }
-
-    .warning strong,
-    .warning span {
-        color: var(--warning-text) !important;
-    }
-
-
-    /* ============================================================
-       REFERENCE BOX
-       ============================================================ */
 
     .reference {
         padding: 15px;
         border-radius: 10px;
-        background: var(--reference-bg);
-        border-left: 5px solid var(--reference-border);
-        color: var(--reference-text) !important;
+        background: #eff6ff;
+        border-left: 5px solid #3b82f6;
+        color: #1e3a8a;
         margin-bottom: 15px;
     }
 
-    .reference strong,
-    .reference span {
-        color: var(--reference-text) !important;
-    }
-
-
-    /* ============================================================
-       VITAL CARDS
-       ============================================================ */
-
     .vital {
-        background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 12px;
-        padding: 18px;
-        text-align: center;
-        min-height: 125px;
-    }
-
-    .label {
-        color: var(--text-secondary) !important;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-
-    .value {
-        color: var(--text-primary) !important;
-        font-size: 1.7rem;
-        font-weight: 800;
-        margin: 6px 0;
-    }
-
-
-    /* ============================================================
-       OCR CONFIDENCE
-       ============================================================ */
-
-    .confidence-high {
-        color: var(--success-text) !important;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-    .confidence-medium {
-        color: var(--medium) !important;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-    .confidence-low {
-        color: var(--danger) !important;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-
-    /* ============================================================
-       STREAMLIT CAPTIONS
-       ============================================================ */
-
-    [data-testid="stCaptionContainer"] p {
-        color: var(--text-muted) !important;
-    }
-
-
-    /* ============================================================
-       INPUT LABELS
-       ============================================================ */
-
-    [data-testid="stWidgetLabel"] p {
-        color: var(--text-secondary) !important;
-        font-weight: 600;
-    }
-
-
-    /* ============================================================
-       SIDEBAR
-       ============================================================ */
-
-    [data-testid="stSidebar"] {
-        color: var(--text-primary);
-    }
-
-    [data-testid="stSidebar"] h1,
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3 {
-        color: var(--text-primary) !important;
-    }
-
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] label {
-        color: var(--text-secondary) !important;
-    }
-
-
-    /* ============================================================
-       EXPANDERS
-       ============================================================ */
-
-    [data-testid="stExpander"] {
-        border-color: var(--card-border);
-    }
-
-    [data-testid="stExpander"] summary p {
-        color: var(--text-primary) !important;
-        font-weight: 600;
-    }
-
-    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {
-        color: var(--text-secondary) !important;
-    }
-
-
-    /* ============================================================
-       ALERTS
-       ============================================================ */
-
-    [data-testid="stAlert"] p {
-        color: inherit !important;
-    }
-
-
-    /* ============================================================
-       DATAFRAME
-       ============================================================ */
-
-    [data-testid="stDataFrame"] {
-        color: var(--text-primary);
-    }
-
-
-    /* ============================================================
-       BUTTONS
-       ============================================================ */
-
-    button[kind="primary"] p {
-        color: #ffffff !important;
-    }
-
-
-    /* ============================================================
-       DIVIDERS
-       ============================================================ */
-
-    hr {
-        border-color: var(--card-border) !important;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
-    /* ========================================================
-       VITAL CARDS
-       ======================================================== */
-
-    .vital {
-        background: #ffffff;
+        background: white;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
         padding: 18px;
@@ -428,121 +74,34 @@ button[kind="primary"] p {
     }
 
     .label {
-        color: #475569 !important;
+        color: #64748b;
         font-weight: 600;
         font-size: 0.85rem;
     }
 
     .value {
-        color: #0f172a !important;
+        color: #0f172a;
         font-size: 1.7rem;
         font-weight: 800;
         margin: 6px 0;
     }
 
-    /* ========================================================
-       OCR CONFIDENCE
-       ======================================================== */
-
     .confidence-high {
-        color: #15803d !important;
+        color: #15803d;
         font-size: 0.8rem;
         font-weight: 600;
     }
 
     .confidence-medium {
-        color: #ca8a04 !important;
+        color: #ca8a04;
         font-size: 0.8rem;
         font-weight: 600;
     }
 
     .confidence-low {
-        color: #dc2626 !important;
+        color: #dc2626;
         font-size: 0.8rem;
         font-weight: 600;
-    }
-
-    /* ========================================================
-       STREAMLIT CAPTIONS
-       ======================================================== */
-
-    [data-testid="stCaptionContainer"] {
-        color: #64748b !important;
-    }
-
-    [data-testid="stCaptionContainer"] p {
-        color: #64748b !important;
-    }
-
-    /* ========================================================
-       STREAMLIT INPUT LABELS
-       ======================================================== */
-
-    [data-testid="stWidgetLabel"] p {
-        color: #334155 !important;
-        font-weight: 600;
-    }
-
-    /* ========================================================
-       STREAMLIT EXPANDERS
-       ======================================================== */
-
-    [data-testid="stExpander"] {
-        border-color: #e2e8f0;
-    }
-
-    [data-testid="stExpander"] summary p {
-        color: #0f172a !important;
-        font-weight: 600;
-    }
-
-    /* Expander body */
-    [data-testid="stExpander"] div[data-testid="stMarkdownContainer"] p {
-        color: #334155 !important;
-    }
-
-    /* ========================================================
-       STREAMLIT INFO / SUCCESS / WARNING / ERROR
-       ======================================================== */
-
-    [data-testid="stAlert"] p {
-        color: inherit !important;
-    }
-
-    /* ========================================================
-       DATAFRAME
-       ======================================================== */
-
-    [data-testid="stDataFrame"] {
-        color: #0f172a !important;
-    }
-
-    /* ========================================================
-       SIDEBAR
-       ======================================================== */
-
-    [data-testid="stSidebar"] {
-        color: #0f172a;
-    }
-
-    [data-testid="stSidebar"] h1,
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3,
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] label {
-        color: #0f172a !important;
-    }
-
-    /* ========================================================
-       BUTTON TEXT
-       ======================================================== */
-
-    button[kind="primary"] p {
-        color: #ffffff !important;
-    }
-
-    button p {
-        color: inherit !important;
     }
 
     </style>
@@ -550,12 +109,13 @@ button[kind="primary"] p {
     unsafe_allow_html=True
 )
 
+
 # ============================================================
 # HEADER
 # ============================================================
 
 st.markdown(
-    '<div class="title">🚑 Monitor Vitals ML Assessment Prototype</div>',
+    '<div class="title">🚑 VitalSight</div>',
     unsafe_allow_html=True
 )
 
@@ -571,12 +131,11 @@ st.markdown(
     """
     <div class="warning">
     <strong>⚠️ Reference / educational prototype</strong><br>
-    Monitor Vitals ML Assessment Prototype is not a medical 
-    device and has not been clinically validated. Extracted 
-    values must be verified against the actual monitor and 
-    patient assessment. Do not use this application as a  
-    substitute for clinical judgment, medical direction, 
-    or local protocols.
+    VitalSight is not a medical device and has not been
+    clinically validated. Extracted values must be verified
+    against the actual monitor and patient assessment.
+    Do not use this application as a substitute for clinical
+    judgment, medical direction, or local protocols.
     </div>
     """,
     unsafe_allow_html=True
@@ -1694,7 +1253,6 @@ if st.session_state.vitals:
 st.divider()
 
 st.caption(
-    "Monitor Vitals ML Assessment Prototype • Educational computer-vision + ML prototype • "
+    "VitalSight • Educational computer-vision + ML prototype • "
     "Verify all extracted values against the source monitor."
 )
-
