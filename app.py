@@ -30,87 +30,144 @@ st.markdown(
     """
     <style>
 
-    .block-container {
-        max-width: 1400px;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-    }
+    /* ==========================================
+       VITALSIGHT THEME-AWARE STYLING
+       ========================================== */
+
+    /* ---------- Main title ---------- */
 
     .title {
         font-size: 2.6rem;
         font-weight: 800;
-        color: #172033;
+        letter-spacing: -0.03em;
+        color: var(--text-color);
     }
 
     .subtitle {
-        color: #667085;
+        color: var(--secondary-text-color);
         margin-bottom: 1.25rem;
+        font-size: 1rem;
     }
+
+
+    /* ---------- Warning ---------- */
 
     .warning {
         padding: 16px 18px;
         border-radius: 10px;
-        background: #fff8eb;
-        border: 1px solid #fed7aa;
+
+        background: rgba(245, 158, 11, 0.10);
+        border: 1px solid rgba(245, 158, 11, 0.30);
         border-left: 4px solid #f59e0b;
-        color: #7c2d12;
+
+        color: var(--text-color);
+
         margin-bottom: 20px;
+        line-height: 1.55;
     }
+
+
+    /* ---------- Reference ---------- */
 
     .reference {
         padding: 16px 18px;
         border-radius: 10px;
-        background: #f0f7ff;
-        border: 1px solid #cfe3ff;
+
+        background: rgba(59, 130, 246, 0.10);
+        border: 1px solid rgba(59, 130, 246, 0.30);
         border-left: 4px solid #3b82f6;
-        color: #1e3a5f;
+
+        color: var(--text-color);
+
         margin-bottom: 15px;
+        line-height: 1.55;
     }
+
+
+    /* ---------- Vital cards ---------- */
 
     .vital {
-        background: #ffffff;
-        border: 1px solid #e4e7ec;
+        background: var(--secondary-background-color);
+
+        border: 1px solid rgba(128, 128, 128, 0.25);
         border-radius: 12px;
+
         padding: 18px 12px;
+
         text-align: center;
         min-height: 125px;
-        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+
+        box-shadow: none;
+
+        transition:
+            border-color 0.15s ease,
+            transform 0.15s ease;
     }
+
+    .vital:hover {
+        border-color: rgba(59, 130, 246, 0.50);
+        transform: translateY(-1px);
+    }
+
+
+    /* ---------- Card label ---------- */
 
     .label {
-        color: #667085;
+        color: var(--secondary-text-color);
+
         font-weight: 600;
         font-size: 0.82rem;
+
+        letter-spacing: 0.01em;
     }
+
+
+    /* ---------- Card value ---------- */
 
     .value {
-        color: #172033;
+        color: var(--text-color);
+
         font-size: 1.7rem;
         font-weight: 800;
+
         margin: 8px 0;
+
+        letter-spacing: -0.02em;
     }
 
+
+    /* ---------- Confidence ---------- */
+
     .confidence-high {
-        color: #167c4a;
+        color: #34d399;
+
         font-size: 0.78rem;
         font-weight: 600;
     }
 
     .confidence-medium {
-        color: #a15c00;
+        color: #fbbf24;
+
         font-size: 0.78rem;
         font-weight: 600;
     }
 
     .confidence-low {
-        color: #c43232;
+        color: #f87171;
+
         font-size: 0.78rem;
         font-weight: 600;
     }
 
+
+    /* ---------- Headings ---------- */
+
     h1, h2, h3 {
-        color: #172033;
+        color: var(--text-color);
     }
+
+
+    /* ---------- Buttons ---------- */
 
     .stButton > button {
         border-radius: 9px;
@@ -118,17 +175,38 @@ st.markdown(
         min-height: 42px;
     }
 
+
+    /* ---------- Metrics ---------- */
+
     [data-testid="stMetric"] {
-        background: #ffffff;
-        border: 1px solid #e4e7ec;
+        background: var(--secondary-background-color);
+
+        border: 1px solid rgba(128, 128, 128, 0.25);
         border-radius: 10px;
+
         padding: 12px;
+    }
+
+
+    /* ---------- Dataframe ---------- */
+
+    [data-testid="stDataFrame"] {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+
+    /* ---------- Dividers ---------- */
+
+    hr {
+        border-color: rgba(128, 128, 128, 0.20);
     }
 
     </style>
     """,
     unsafe_allow_html=True
 )
+
 # ============================================================
 # HEADER
 # ============================================================
