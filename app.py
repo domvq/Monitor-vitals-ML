@@ -30,42 +30,96 @@ st.markdown(
     """
     <style>
 
+    /* ========================================================
+       GLOBAL
+       ======================================================== */
+
     .block-container {
         max-width: 1400px;
         padding-top: 2rem;
     }
 
-    .title {
-        font-size: 2.6rem;
-        font-weight: 800;
+    /* Main Streamlit text */
+    .stApp {
         color: #0f172a;
     }
 
-    .subtitle {
-        color: #64748b;
-        margin-bottom: 1rem;
+    /* ========================================================
+       HEADER
+       ======================================================== */
+
+    .title {
+        font-size: 2.6rem;
+        font-weight: 800;
+        color: #0f172a !important;
+        line-height: 1.2;
     }
+
+    .subtitle {
+        color: #475569 !important;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    /* ========================================================
+       STREAMLIT HEADINGS
+       ======================================================== */
+
+    h1, h2, h3, h4, h5, h6 {
+        color: #0f172a !important;
+    }
+
+    /* ========================================================
+       STREAMLIT BODY TEXT
+       ======================================================== */
+
+    p, li, label, span {
+        color: #334155;
+    }
+
+    /* ========================================================
+       WARNING
+       ======================================================== */
 
     .warning {
         padding: 15px;
         border-radius: 10px;
         background: #fff7ed;
         border-left: 5px solid #f97316;
-        color: #7c2d12;
+        color: #7c2d12 !important;
         margin-bottom: 20px;
     }
+
+    .warning strong,
+    .warning br,
+    .warning span {
+        color: #7c2d12 !important;
+    }
+
+    /* ========================================================
+       REFERENCE
+       ======================================================== */
 
     .reference {
         padding: 15px;
         border-radius: 10px;
         background: #eff6ff;
         border-left: 5px solid #3b82f6;
-        color: #1e3a8a;
+        color: #1e3a8a !important;
         margin-bottom: 15px;
     }
 
+    .reference strong,
+    .reference span {
+        color: #1e3a8a !important;
+    }
+
+    /* ========================================================
+       VITAL CARDS
+       ======================================================== */
+
     .vital {
-        background: white;
+        background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
         padding: 18px;
@@ -74,41 +128,127 @@ st.markdown(
     }
 
     .label {
-        color: #64748b;
+        color: #475569 !important;
         font-weight: 600;
         font-size: 0.85rem;
     }
 
     .value {
-        color: #0f172a;
+        color: #0f172a !important;
         font-size: 1.7rem;
         font-weight: 800;
         margin: 6px 0;
     }
 
+    /* ========================================================
+       OCR CONFIDENCE
+       ======================================================== */
+
     .confidence-high {
-        color: #15803d;
+        color: #15803d !important;
         font-size: 0.8rem;
         font-weight: 600;
     }
 
     .confidence-medium {
-        color: #ca8a04;
+        color: #ca8a04 !important;
         font-size: 0.8rem;
         font-weight: 600;
     }
 
     .confidence-low {
-        color: #dc2626;
+        color: #dc2626 !important;
         font-size: 0.8rem;
         font-weight: 600;
+    }
+
+    /* ========================================================
+       STREAMLIT CAPTIONS
+       ======================================================== */
+
+    [data-testid="stCaptionContainer"] {
+        color: #64748b !important;
+    }
+
+    [data-testid="stCaptionContainer"] p {
+        color: #64748b !important;
+    }
+
+    /* ========================================================
+       STREAMLIT INPUT LABELS
+       ======================================================== */
+
+    [data-testid="stWidgetLabel"] p {
+        color: #334155 !important;
+        font-weight: 600;
+    }
+
+    /* ========================================================
+       STREAMLIT EXPANDERS
+       ======================================================== */
+
+    [data-testid="stExpander"] {
+        border-color: #e2e8f0;
+    }
+
+    [data-testid="stExpander"] summary p {
+        color: #0f172a !important;
+        font-weight: 600;
+    }
+
+    /* Expander body */
+    [data-testid="stExpander"] div[data-testid="stMarkdownContainer"] p {
+        color: #334155 !important;
+    }
+
+    /* ========================================================
+       STREAMLIT INFO / SUCCESS / WARNING / ERROR
+       ======================================================== */
+
+    [data-testid="stAlert"] p {
+        color: inherit !important;
+    }
+
+    /* ========================================================
+       DATAFRAME
+       ======================================================== */
+
+    [data-testid="stDataFrame"] {
+        color: #0f172a !important;
+    }
+
+    /* ========================================================
+       SIDEBAR
+       ======================================================== */
+
+    [data-testid="stSidebar"] {
+        color: #0f172a;
+    }
+
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label {
+        color: #0f172a !important;
+    }
+
+    /* ========================================================
+       BUTTON TEXT
+       ======================================================== */
+
+    button[kind="primary"] p {
+        color: #ffffff !important;
+    }
+
+    button p {
+        color: inherit !important;
     }
 
     </style>
     """,
     unsafe_allow_html=True
 )
-
 
 # ============================================================
 # HEADER
