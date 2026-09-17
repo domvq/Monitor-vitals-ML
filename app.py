@@ -21,7 +21,6 @@ st.set_page_config(
     layout="wide"
 )
 
-
 # ============================================================
 # STYLE
 # ============================================================
@@ -29,10 +28,6 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-
-    /* ============================================================
-       COLOR SYSTEM
-       ============================================================ */
 
     :root {
         --text-primary: #0f172a;
@@ -51,19 +46,11 @@ st.markdown(
         --reference-border: #3b82f6;
 
         --success: #16a34a;
-        --success-text: #15803d;
-
         --medium: #ca8a04;
         --danger: #dc2626;
     }
 
-
-    /* ============================================================
-       DARK MODE
-       ============================================================ */
-
     @media (prefers-color-scheme: dark) {
-
         :root {
             --text-primary: #f8fafc;
             --text-secondary: #cbd5e1;
@@ -81,14 +68,155 @@ st.markdown(
             --reference-border: #60a5fa;
 
             --success: #4ade80;
-            --success-text: #4ade80;
-
             --medium: #facc15;
             --danger: #f87171;
         }
-
     }
 
+    .block-container {
+        max-width: 1400px;
+        padding-top: 2rem;
+    }
+
+    .stApp {
+        color: var(--text-primary);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-primary) !important;
+    }
+
+    p {
+        color: var(--text-secondary);
+    }
+
+    .title {
+        font-size: 2.6rem;
+        font-weight: 800;
+        color: var(--text-primary) !important;
+        line-height: 1.2;
+    }
+
+    .subtitle {
+        color: var(--text-muted) !important;
+        margin-bottom: 1rem;
+    }
+
+    .warning {
+        padding: 15px;
+        border-radius: 10px;
+        background: var(--warning-bg);
+        border-left: 5px solid var(--warning-border);
+        color: var(--warning-text) !important;
+        margin-bottom: 20px;
+    }
+
+    .warning strong {
+        color: var(--warning-text) !important;
+    }
+
+    .reference {
+        padding: 15px;
+        border-radius: 10px;
+        background: var(--reference-bg);
+        border-left: 5px solid var(--reference-border);
+        color: var(--reference-text) !important;
+        margin-bottom: 15px;
+    }
+
+    .reference strong {
+        color: var(--reference-text) !important;
+    }
+
+    .vital {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 18px;
+        text-align: center;
+        min-height: 125px;
+    }
+
+    .label {
+        color: var(--text-secondary) !important;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .value {
+        color: var(--text-primary) !important;
+        font-size: 1.7rem;
+        font-weight: 800;
+        margin: 6px 0;
+    }
+
+    .confidence-high {
+        color: var(--success) !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .confidence-medium {
+        color: var(--medium) !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .confidence-low {
+        color: var(--danger) !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    [data-testid="stCaptionContainer"] p {
+        color: var(--text-muted) !important;
+    }
+
+    [data-testid="stWidgetLabel"] p {
+        color: var(--text-secondary) !important;
+        font-weight: 600;
+    }
+
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        color: var(--text-primary) !important;
+    }
+
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label {
+        color: var(--text-secondary) !important;
+    }
+
+    [data-testid="stExpander"] {
+        border-color: var(--card-border);
+    }
+
+    [data-testid="stExpander"] summary p {
+        color: var(--text-primary) !important;
+        font-weight: 600;
+    }
+
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {
+        color: var(--text-secondary) !important;
+    }
+
+    [data-testid="stAlert"] p {
+        color: inherit !important;
+    }
+
+    hr {
+        border-color: var(--card-border) !important;
+    }
+
+    button[kind="primary"] p {
+        color: #ffffff !important;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
     /* ============================================================
        MAIN PAGE
