@@ -1,9 +1,10 @@
 streamlit
-pillow
+easyocr
+torch
+torchvision
 numpy
 pandas
 plotly
-scikit-learn
+Pillow
 opencv-python-headless
-pytesseract
-easyocr
+scikit-learn
