@@ -346,6 +346,273 @@ if uploaded:
                     f"Reader error: {e}"
                 )
 
+# ============================================================
+# IMAGE UPLOAD
+# ============================================================
+
+st.subheader("📷 Monitor Images")
+
+uploaded_files = st.file_uploader(
+    "Upload up to 5 monitor photographs",
+    type=["jpg", "jpeg", "png"],
+    accept_multiple_files=True
+)
+
+# Limit to 5 images
+if len(uploaded_files) > 5:
+    st.error("Please upload a maximum of 5 images.")
+    uploaded_files = uploaded_files[:5]
+
+
+if uploaded_files:
+
+    st.write(
+        f"**{len(uploaded_files)} image(s) selected**"
+    )
+
+    # Preview images
+    preview_columns = st.columns(
+        min(len(uploaded_files), 5)
+    )
+
+    for column, uploaded in zip(
+        preview_columns,
+        uploaded_files
+    ):
+
+        with column:
+
+            try:
+
+                image = Image.open(
+                    uploaded
+                ).convert("RGB")
+
+                st.image(
+                    image,
+                    caption=uploaded.name,
+                    use_container_width=True
+                )
+
+            except Exception as e:
+
+                st.error(
+                    f"Could not open {uploaded.name}: {e}"
+                )
+
+
+    # ========================================================
+    # READ ALL IMAGES
+    # ========================================================
+
+    if st.button(
+        "🔍 Read All Monitors",
+        type="primary",
+        use_container_width=True
+    ):
+
+        # Clear previous OCR results
+        st.session_state.ocr = []
+        st.session_state.vitals = None
+
+        all_readings = []
+
+        progress = st.progress(0)
+        status = st.empty()
+
+        for index, uploaded in enumerate(
+            uploaded_files
+        ):
+
+            try:
+
+                status.info(
+                    f"Reading image {index + 1} "
+                    f"of {len(uploaded_files)}: "
+                    f"{uploaded.name}"
+                )
+
+                # ------------------------------------------------
+                # Open image
+                # ------------------------------------------------
+
+                image = Image.open(
+                    uploaded
+                ).convert("RGB")
+
+                # ------------------------------------------------
+                # General OCR
+                # ------------------------------------------------
+
+                ocr_results = extract_text(
+                    image
+                )
+
+                if not isinstance(
+                    ocr_results,
+                    list
+                ):
+                    ocr_results = []
+
+                # ------------------------------------------------
+                # Parse vitals
+                # ------------------------------------------------
+
+                vitals = parse_vitals(
+                    ocr_results
+                )
+
+                if not isinstance(
+                    vitals,
+                    dict
+                ):
+                    vitals = {}
+
+                # ------------------------------------------------
+                # BP-specific OCR
+                # ------------------------------------------------
+
+                bp_results = extract_bp_candidates(
+                    image
+                )
+
+                best_bp = None
+                best_bp_confidence = None
+
+                for result in bp_results:
+
+                    if not isinstance(
+                        result,
+                        dict
+                    ):
+                        continue
+
+                    text = str(
+                        result.get(
+                            "text",
+                            ""
+                        )
+                    )
+
+                    try:
+
+                        confidence = float(
+                            result.get(
+                                "confidence",
+                                0
+                            )
+                        )
+
+                    except (
+                        TypeError,
+                        ValueError
+                    ):
+
+                        confidence = 0.0
+
+                    match = re.search(
+                        r"(\d{2,3})\s*[/\-]\s*(\d{2,3})",
+                        text
+                    )
+
+                    if not match:
+                        continue
+
+                    systolic = int(
+                        match.group(1)
+                    )
+
+                    diastolic = int(
+                        match.group(2)
+                    )
+
+                    # Sanity check
+                    if not (
+                        50 <= systolic <= 250
+                        and 20 <= diastolic <= 150
+                        and systolic > diastolic
+                    ):
+                        continue
+
+                    if (
+                        best_bp_confidence is None
+                        or confidence > best_bp_confidence
+                    ):
+
+                        best_bp = (
+                            systolic,
+                            diastolic
+                        )
+
+                        best_bp_confidence = (
+                            confidence
+                        )
+
+                if best_bp:
+
+                    vitals["bp_sys"] = (
+                        best_bp[0]
+                    )
+
+                    vitals["bp_dia"] = (
+                        best_bp[1]
+                    )
+
+                    vitals["bp_confidence"] = (
+                        best_bp_confidence
+                    )
+
+                # ------------------------------------------------
+                # Store reading
+                # ------------------------------------------------
+
+                all_readings.append(
+                    {
+                        "filename": uploaded.name,
+                        "vitals": vitals,
+                        "ocr": ocr_results
+                    }
+                )
+
+                # Keep the most recent reading available
+                st.session_state.vitals = vitals
+
+                st.session_state.ocr = (
+                    ocr_results
+                )
+
+                # ------------------------------------------------
+                # Release image memory
+                # ------------------------------------------------
+
+                del image
+
+                progress.progress(
+                    (index + 1) /
+                    len(uploaded_files)
+                )
+
+            except Exception as e:
+
+                st.error(
+                    f"Error processing "
+                    f"{uploaded.name}: {e}"
+                )
+
+                progress.progress(
+                    (index + 1) /
+                    len(uploaded_files)
+                )
+
+        status.success(
+            f"Finished processing "
+            f"{len(all_readings)} image(s)."
+        )
+
+        # Save batch results
+        st.session_state.batch_readings = (
+            all_readings
+        )
 
 # ============================================================
 # CONFIDENCE
